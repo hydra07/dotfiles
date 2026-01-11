@@ -1,0 +1,6 @@
+[tools]
+python = "latest"
+bun = "latest"
+rust = "latest"
+go = "latest"
+node = "latest"

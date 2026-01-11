@@ -1,0 +1,207 @@
+return {
+	{
+		"folke/which-key.nvim",
+		event = "VeryLazy",
+		opts = {
+			preset = "helix",
+			plugins = {
+				marks = true,
+				registers = true,
+				spelling = { enabled = true, suggestions = 20 },
+			},
+			win = {
+				border = "single",
+				padding = { 1, 2 },
+				title_pos = "center",
+				wo = { winblend = 30 },
+			},
+			icons = {
+				breadcrumb = "»",
+				separator = "➜",
+				group = "+",
+			},
+			spec = {
+				{ "<leader>f", group = "File/Find" },
+				{ "<leader>e", desc = "Explorer" },
+				{ "<leader>s", group = "Flash/Jump", icon = "⚡" },
+				{ "<leader>g", group = "Git" },
+				{ "<leader>l", group = "LSP" },
+				{ "<leader>w", group = "Window/Split" }, -- Nhóm Window & Split
+				{ "<leader>b", group = "Buffer" }, -- Nhóm quản lý Tab/Buffer
+				{ "<leader>v", group = "Neovide" }, -- Nhóm cho Neovide GUI
+				{ "<leader>t", group = "Terminal" },
+				{ "<leader>c", group = "Code/Copilot" },
+				{ ";", group = "Telescope/QuickActions" },
+				{ ";h", desc = "Toggle Inlay Hints" },
+			},
+		},
+		keys = {
+			-- Di chuyển bằng J/K trong Visual Mode (Tự động căn lề '=' )
+			{ "J", ":m '>+1<cr>gv=gv", desc = "Move Block Down", mode = "v" },
+			{ "K", ":m '<-2<cr>gv=gv", desc = "Move Block Up", mode = "v" },
+			-- Di chuyển bằng Alt + Mũi tên (Dành cho Normal Mode)
+			{ "<A-Down>", "<cmd>m .+1<cr>== ", desc = "Move Line Down" },
+			{ "<A-Up>", "<cmd>m .-2<cr>== ", desc = "Move Line Up" },
+			-- Di chuyển bằng Alt + Mũi tên (Dành cho Visual Mode)
+			{ "<A-Down>", ":m '>+1<cr>gv=gv", desc = "Move Block Down", mode = "v" },
+			{ "<A-Up>", ":m '<-2<cr>gv=gv", desc = "Move Block Up", mode = "v" },
+			-- Di chuyển bằng Alt + Mũi tên (Dành cho Insert Mode)
+			{ "<A-Down>", "<esc><cmd>m .+1<cr>==gi", desc = "Move Line Down", mode = "i" },
+			{ "<A-Up>", "<esc><cmd>m .-2<cr>==gi", desc = "Move Line Up", mode = "i" },
+			-- 1. FILE & SAVE
+			{
+				"<C-s>",
+				"<cmd>w<cr><esc>",
+				desc = "Save File",
+				mode = { "n", "i", "v" },
+			},
+			{
+				"<leader>fs",
+				"<cmd>w<cr>",
+				desc = "Save File",
+			},
+			{
+				"<leader>fS",
+				"<cmd>wa<cr>",
+				desc = "Save All",
+			},
+			{
+				"<leader>fn",
+				"<cmd>enew<cr>",
+				desc = "New File",
+			},
+			-- 2. WINDOW & SPLIT
+			{
+				"<leader>wv",
+				"<cmd>vsplit<cr>",
+				desc = "Split Vertical",
+			},
+			{
+				"<leader>ws",
+				"<cmd>split<cr>",
+				desc = "Split Horizontal",
+			},
+			{
+				"<leader>wd",
+				"<cmd>close<cr>",
+				desc = "Close Window",
+			},
+			{
+				"<leader>wo",
+				"<cmd>only<cr>",
+				desc = "Close Others",
+			},
+			-- 3. BUFFER MANAGEMENT
+			{
+				"<leader>bn",
+				"<cmd>bnext<cr>",
+				desc = "Next Buffer",
+			},
+			{
+				"<leader>bp",
+				"<cmd>bprevious<cr>",
+				desc = "Prev Buffer",
+			},
+			{
+				"<leader>bd",
+				"<cmd>bdelete<cr>",
+				desc = "Delete Buffer",
+			},
+			-- 4. NEOVIDE GUI OPTIMIZATION
+			{
+				"<leader>v+",
+				function()
+					vim.g.neovide_opacity = math.min(vim.g.neovide_opacity + 0.05, 1)
+				end,
+				desc = "Increase Transparency",
+			},
+			{
+				"<leader>v-",
+				function()
+					vim.g.neovide_opacity = math.max(vim.g.neovide_opacity - 0.05, 0)
+				end,
+				desc = "Decrease Transparency",
+			},
+			{
+				"<C-=>", -- Ctrl + = để tăng font
+				function()
+					local current_font = vim.o.guifont
+					local name, size = current_font:match("([^:]+):h(%d+)")
+					if name and size then
+						vim.o.guifont = name .. ":h" .. (tonumber(size) + 1)
+					end
+				end,
+				desc = "Increase Font Size",
+			},
+			{
+				"<C-->", -- Ctrl + - để giảm font
+				function()
+					local current_font = vim.o.guifont
+					local name, size = current_font:match("([^:]+):h(%d+)")
+					if name and size then
+						local new_size = tonumber(size) - 1
+						if new_size > 0 then
+							vim.o.guifont = name .. ":h" .. new_size
+						end
+					end
+				end,
+				desc = "Decrease Font Size",
+			},
+			{
+				"<C-0>", -- Ctrl + 0 để reset font về mặc định (ví dụ 13)
+				function()
+					local current_font = vim.o.guifont
+					local name = current_font:match("([^:]+):h%d+")
+					if name then
+						vim.o.guifont = name .. ":h13"
+					end
+				end,
+				desc = "Reset Font Size",
+			},
+			-- 5. LSP & CODE
+			{
+				"<leader>la",
+				vim.lsp.buf.code_action,
+				desc = "Code Action",
+			},
+			{
+				"<leader>lr",
+				vim.lsp.buf.rename,
+				desc = "Rename Symbol",
+			},
+			{
+				"<leader>li",
+				"<cmd>LspInfo<cr>",
+				desc = "LSP Information",
+			},
+			{
+				"<leader>lm",
+				"<cmd>Mason<cr>",
+				desc = "Mason Manager",
+			},
+			{
+				"<leader>cf",
+				function()
+					require("conform").format({ async = true, lsp_format = "fallback" })
+				end,
+				desc = "Format Buffer",
+			},
+			{ "<leader>ct", "<cmd>Copilot toggle<cr>", desc = "Toggle Copilot" },
+			{ "<leader>ci", "<cmd>ConformInfo<cr>", desc = "Conform Info" },
+			-- 6. TERMINAL
+			{ "<leader>t1", "<cmd>1ToggleTerm direction=horizontal<cr>", desc = "Terminal 1 (Down)" },
+			{ "<leader>t2", "<cmd>2ToggleTerm direction=vertical<cr>", desc = "Terminal 2 (Side)" },
+			{ "<leader>t3", "<cmd>3ToggleTerm direction=float<cr>", desc = "Terminal 3 (Float)" },
+			{ "<leader>ts", "<cmd>TermSelect<cr>", desc = "Select Terminal" },
+			{ "<leader>tt", "<cmd>ToggleTermToggleAll<cr>", desc = "Toggle All Terminals" },
+			-- 7. KHÁC
+			{
+				"<leader>?",
+				function()
+					require("which-key").show({ global = false })
+				end,
+				desc = "Buffer Local Keymaps",
+			},
+		},
+	},
+}
