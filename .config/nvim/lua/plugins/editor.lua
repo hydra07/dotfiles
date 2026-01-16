@@ -62,7 +62,7 @@ return {
 					},
 					mappings = {
 						i = {
-							["<C-j>"] = actions.move_selection_next, -- Đồng bộ với Blink.cmp
+							["<C-j>"] = actions.move_selection_next,
 							["<C-k>"] = actions.move_selection_previous,
 							["<C-n>"] = actions.cycle_history_next,
 							["<C-p>"] = actions.cycle_history_prev,
@@ -115,7 +115,7 @@ return {
 				start_in_insert = true,
 				insert_mappings = true,
 				persist_size = true,
-				direction = "horizontal", -- Mặc định nhét xuống dưới
+				direction = "horizontal",
 				close_on_exit = true,
 				shell = vim.o.shell,
 				float_opts = {
@@ -124,8 +124,8 @@ return {
 				},
 			})
 
-			-- Hàm để mở Terminal với ID cụ thể
-			-- Ví dụ: 1<C-\> mở terminal 1, 2<C-\> mở terminal 2
+			-- Open terminal with ID
+			-- Ex: 1<C-\> Open terminal 1, 2<C-\> Open terminal 2
 			function _G.set_terminal_keymaps()
 				local opts = { buffer = 0 }
 				vim.keymap.set("t", "<esc>", [[<C-\><C-n>]], opts)
@@ -194,7 +194,7 @@ return {
 		dependencies = {
 			"catppuccin/nvim",
 			"nvim-tree/nvim-web-devicons",
-			"AndreM222/copilot-lualine", -- Thêm dependency này
+			"AndreM222/copilot-lualine",
 		},
 		opts = function()
 			local function get_formatter()
@@ -240,7 +240,7 @@ return {
 					component_separators = { left = "│", right = "│" },
 					section_separators = { left = "", right = "" },
 					globalstatus = true,
-					refresh = { statusline = 1000 }, -- Giảm refresh xuống 1s để icon Copilot nhạy hơn
+					refresh = { statusline = 1000 },
 					disabled_filetypes = { statusline = { "dashboard", "alpha", "neo-tree" } },
 				},
 				sections = {
@@ -327,7 +327,7 @@ return {
 			},
 		},
 		keys = {
-			-- Nhấn 's' để nhảy nhanh đến bất kỳ đâu (giống Cursor/VSCode Jump)
+			-- Press 's' to jump anywhere (like Cursor/VSCode Jump)
 			{
 				"s",
 				mode = { "n", "x", "o" },
@@ -336,7 +336,7 @@ return {
 				end,
 				desc = "Flash",
 			},
-			-- Nhấn 'S' để chọn nhanh các khối code (hàm, ngoặc, if/else) bằng Treesitter
+			-- Press 'S' to select code blocks quickly (functions, brackets, if/else) using Treesitter
 			{
 				"S",
 				mode = { "n", "x", "o" },
@@ -345,7 +345,7 @@ return {
 				end,
 				desc = "Flash Treesitter",
 			},
-			-- Nhấn 'r' trong khi đang chọn (Visual mode) để chọn vùng bao quanh
+			-- Press 'r' in visual mode to select surrounding area
 			{
 				"r",
 				mode = "o",

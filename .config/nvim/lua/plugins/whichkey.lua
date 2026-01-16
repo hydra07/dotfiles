@@ -26,9 +26,9 @@ return {
 				{ "<leader>s", group = "Flash/Jump", icon = "⚡" },
 				{ "<leader>g", group = "Git" },
 				{ "<leader>l", group = "LSP" },
-				{ "<leader>w", group = "Window/Split" }, -- Nhóm Window & Split
-				{ "<leader>b", group = "Buffer" }, -- Nhóm quản lý Tab/Buffer
-				{ "<leader>v", group = "Neovide" }, -- Nhóm cho Neovide GUI
+				{ "<leader>w", group = "Window/Split" },
+				{ "<leader>b", group = "Buffer" },
+				{ "<leader>v", group = "Neovide" },
 				{ "<leader>t", group = "Terminal" },
 				{ "<leader>c", group = "Code/Copilot" },
 				{ ";", group = "Telescope/QuickActions" },
@@ -36,16 +36,13 @@ return {
 			},
 		},
 		keys = {
-			-- Di chuyển bằng J/K trong Visual Mode (Tự động căn lề '=' )
+			-- Move block up/down in Visual Mode with J/K
 			{ "J", ":m '>+1<cr>gv=gv", desc = "Move Block Down", mode = "v" },
 			{ "K", ":m '<-2<cr>gv=gv", desc = "Move Block Up", mode = "v" },
-			-- Di chuyển bằng Alt + Mũi tên (Dành cho Normal Mode)
 			{ "<A-Down>", "<cmd>m .+1<cr>== ", desc = "Move Line Down" },
 			{ "<A-Up>", "<cmd>m .-2<cr>== ", desc = "Move Line Up" },
-			-- Di chuyển bằng Alt + Mũi tên (Dành cho Visual Mode)
 			{ "<A-Down>", ":m '>+1<cr>gv=gv", desc = "Move Block Down", mode = "v" },
 			{ "<A-Up>", ":m '<-2<cr>gv=gv", desc = "Move Block Up", mode = "v" },
-			-- Di chuyển bằng Alt + Mũi tên (Dành cho Insert Mode)
 			{ "<A-Down>", "<esc><cmd>m .+1<cr>==gi", desc = "Move Line Down", mode = "i" },
 			{ "<A-Up>", "<esc><cmd>m .-2<cr>==gi", desc = "Move Line Up", mode = "i" },
 			-- 1. FILE & SAVE
@@ -123,7 +120,7 @@ return {
 				desc = "Decrease Transparency",
 			},
 			{
-				"<C-=>", -- Ctrl + = để tăng font
+				"<C-=>", -- Ctrl + = to increase font size
 				function()
 					local current_font = vim.o.guifont
 					local name, size = current_font:match("([^:]+):h(%d+)")
@@ -134,7 +131,7 @@ return {
 				desc = "Increase Font Size",
 			},
 			{
-				"<C-->", -- Ctrl + - để giảm font
+				"<C-->", -- Ctrl + - to decrease font size
 				function()
 					local current_font = vim.o.guifont
 					local name, size = current_font:match("([^:]+):h(%d+)")
@@ -148,7 +145,7 @@ return {
 				desc = "Decrease Font Size",
 			},
 			{
-				"<C-0>", -- Ctrl + 0 để reset font về mặc định (ví dụ 13)
+				"<C-0>", -- Ctrl + 0 to reset font size to 13
 				function()
 					local current_font = vim.o.guifont
 					local name = current_font:match("([^:]+):h%d+")
@@ -194,7 +191,7 @@ return {
 			{ "<leader>t3", "<cmd>3ToggleTerm direction=float<cr>", desc = "Terminal 3 (Float)" },
 			{ "<leader>ts", "<cmd>TermSelect<cr>", desc = "Select Terminal" },
 			{ "<leader>tt", "<cmd>ToggleTermToggleAll<cr>", desc = "Toggle All Terminals" },
-			-- 7. KHÁC
+			-- 7. Helpful Shortcuts
 			{
 				"<leader>?",
 				function()

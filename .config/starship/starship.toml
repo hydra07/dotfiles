@@ -1,16 +1,7 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 
-# right_format = '$time'
-
 [time]
 disabled = false
 time_format = '%R'
 format = 'at [$time]($style) '
 style = 'bold yellow'
-
-
-# [custom.home]
-# command = 'echo HOME'
-# detect_files = ['foo']
-# when = ''' test "$HOME" = "$PWD" '''
-# format = '[$output]($style)'

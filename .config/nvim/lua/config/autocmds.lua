@@ -5,8 +5,8 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	group = augroup("highlight_yank"),
 	callback = function()
 		vim.highlight.on_yank({
-			higroup = "IncSearch", -- Hoặc "Visual", hoặc màu Pink bạn thích
-			timeout = 150, -- Thời gian nháy (ms)
+			higroup = "IncSearch",
+			timeout = 150,
 		})
 	end,
 })

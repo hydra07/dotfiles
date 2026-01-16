@@ -17,7 +17,7 @@ $coreApp = @(
   "git", "curl", "7zip", "wget", "fzf", 
   "make", "neovim", "starship", "fd", "eza", 
   "lua", "ripgrep", "touch", "tree-sitter",
-  "sudo" 
+  "sudo", "grep" 
 )
 foreach ($app in $coreApp) {
   if (-not (Get-Command $app -ErrorAction SilentlyContinue)) {
@@ -32,8 +32,8 @@ foreach ($app in $coreApp) {
 }
 
 Write-Host ">>> Starting Linker..."
-& "$ScriptDir\windows\setup.ps1"  # Dùng & và trỏ tới file trên
-Write-Host ">>> Linker finished. Continuing..." # Dòng này sẽ được chạy sau khi return
+& "$ScriptDir\windows\setup.ps1"
+Write-Host ">>> Linker finished. Continuing..."
 # install mise - using winget
 Write-Host ">>> Installing mise via Winget..." -ForegroundColor Cyan
 if (-not (Get-Command mise -ErrorAction SilentlyContinue)) {

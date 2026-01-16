@@ -1,3 +1,4 @@
+#Link .config subfolders to $HOME\.config on Windows
 $ErrorActionPreference = "Stop"
 $ScriptDir = if ($PSScriptRoot) { 
   $PSScriptRoot 
@@ -58,6 +59,11 @@ $GlobalState = @{
 foreach ($Item in $Selected) {
   $Target = Join-Path $DestBase $Item.Name
   Link-Item -Src $Item.FullName -Dest $Target -State ([ref]$GlobalState)
+  # if neovim Link to %APPDATA%\nvim
+  if ($Item.Name -eq "nvim") {
+    $NvimDest = Join-Path $env:LOCALAPPDATA "nvim"
+    Link-Item -Src $Item.FullName -Dest $NvimDest -State ([ref]$GlobalState)
+  }
 }
 Write-Host "`n>> Linking phase completed." -ForegroundColor Cyan
 $Backups = Get-ChildItem -Path $DestBase -Directory -Filter "*.bak" -ErrorAction SilentlyContinue

@@ -31,7 +31,8 @@ return {
 				"fish_lsp",
 				"powershell_es",
 				"vtsls",
-				"pyright",
+				-- "pyright",
+				"python-lsp-server",
 				"rust_analyzer",
 				"gopls",
 				"lua_ls",
@@ -71,7 +72,7 @@ return {
 							codeFormatting = { Preset = "OTBS" }, -- Hoặc "Microsoft" tùy style bạn thích
 						},
 					}
-					-- Neovide trên Windows đôi khi cần chỉ định rõ đường dẫn bundle nếu Mason không tự nhận
+
 					config.bundle_path = vim.fn.stdpath("data") .. "/mason/packages/powershell-editor-services"
 				-- ESLINT
 				elseif server == "eslint" then
@@ -129,11 +130,11 @@ return {
 				vim.lsp.with(vim.lsp.handlers.signatureHelp, { border = "single" })
 			vim.diagnostic.config({
 				float = { border = "single" },
-				virtual_text = true, -- QUAN TRỌNG: set thành true để hiện inline
-				signs = true, -- Hiện icon bên lề trái (gutter)
-				underline = true, -- Gạch chân dưới chỗ lỗi
-				update_in_insert = false, -- Tắt update khi đang gõ để đỡ rối mắt
-				severity_sort = true, -- Ưu tiên hiện lỗi nặng trước
+				virtual_text = true,
+				signs = true,
+				underline = true,
+				update_in_insert = false,
+				severity_sort = true,
 			})
 			vim.api.nvim_create_autocmd("LspAttach", {
 				callback = function(args)
