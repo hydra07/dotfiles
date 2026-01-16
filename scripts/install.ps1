@@ -1,5 +1,9 @@
 $ErrorActionPreference = "Stop"
-
+$ScriptDir = if ($PSScriptRoot) {
+  $PSScriptRoot 
+} else {
+  Get-Location 
+}
 Write-Host "Starting installation process..."
 # install scoop
 if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
@@ -27,9 +31,9 @@ foreach ($app in $coreApp) {
   }
 }
 
-# Link dotfolder
-$ConfigPath = "$HOME\.config"
-
+Write-Host ">>> Starting Linker..."
+& "$ScriptDir\windows\setup.ps1"  # Dùng & và trỏ tới file trên
+Write-Host ">>> Linker finished. Continuing..." # Dòng này sẽ được chạy sau khi return
 # install mise - using winget
 Write-Host ">>> Installing mise via Winget..." -ForegroundColor Cyan
 if (-not (Get-Command mise -ErrorAction SilentlyContinue)) {

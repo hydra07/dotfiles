@@ -127,7 +127,14 @@ return {
 			vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = "single" })
 			vim.lsp.handlers["textDocument/signatureHelp"] =
 				vim.lsp.with(vim.lsp.handlers.signatureHelp, { border = "single" })
-			vim.diagnostic.config({ float = { border = "single" } })
+			vim.diagnostic.config({
+				float = { border = "single" },
+				virtual_text = true, -- QUAN TRỌNG: set thành true để hiện inline
+				signs = true, -- Hiện icon bên lề trái (gutter)
+				underline = true, -- Gạch chân dưới chỗ lỗi
+				update_in_insert = false, -- Tắt update khi đang gõ để đỡ rối mắt
+				severity_sort = true, -- Ưu tiên hiện lỗi nặng trước
+			})
 			vim.api.nvim_create_autocmd("LspAttach", {
 				callback = function(args)
 					local client = vim.lsp.get_client_by_id(args.data.client_id)
