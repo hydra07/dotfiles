@@ -32,7 +32,7 @@ return {
 				"powershell_es",
 				"vtsls",
 				-- "pyright",
-				"python-lsp-server",
+				"pylsp",
 				"rust_analyzer",
 				"gopls",
 				"lua_ls",
