@@ -16,13 +16,13 @@ return {
 		priority = 1000,
 		config = function()
 			require("catppuccin").setup({
-				flavour = "macchiato",
+				flavour = "mocha",
 				transparent_background = true,
 				term_colors = true,
 				custom_highlights = function(colors)
 					return {
-						LineNr = { fg = colors.overlay1, bold = true },
-						-- CursorLineNr = { fg = colors.lavender, bold = true },
+						LineNr = { fg = colors.overlay1 },
+						CursorLineNr = { fg = colors.lavender, bold = true },
 						-- VertSplit = { fg = colors.surface1 },
 					}
 				end,
@@ -48,6 +48,7 @@ return {
 					},
 					treesitter = true,
 					which_key = true,
+					trouble = true,
 				},
 				compile = { enabled = true },
 			})

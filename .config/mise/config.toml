@@ -7,6 +7,6 @@ rust = "latest"
 pnpm = "latest"
 java = "temurin-21"
 
-
 [settings]
 trusted_config_paths = ["~/.config"]
+python_venv_auto_create = true

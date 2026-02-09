@@ -31,7 +31,6 @@ return {
 				"fish_lsp",
 				"powershell_es",
 				"vtsls",
-				-- "pyright",
 				"pylsp",
 				"rust_analyzer",
 				"gopls",
@@ -69,10 +68,9 @@ return {
 					config.settings = {
 						powershell = {
 							scriptAnalysis = { enable = true, settingsPath = "" },
-							codeFormatting = { Preset = "OTBS" }, -- Hoặc "Microsoft" tùy style bạn thích
+							codeFormatting = { Preset = "OTBS" },
 						},
 					}
-
 					config.bundle_path = vim.fn.stdpath("data") .. "/mason/packages/powershell-editor-services"
 				-- ESLINT
 				elseif server == "eslint" then

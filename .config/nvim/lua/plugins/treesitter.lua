@@ -4,6 +4,7 @@ return {
 		build = ":TSUpdate",
 		event = { "BufReadPost", "BufNewFile" },
 		config = function()
+			-- require("nvim-treesitter.install").compilers = { "zig" }
 			require("nvim-treesitter").setup({
 				ensure_installed = {
 					"lua",

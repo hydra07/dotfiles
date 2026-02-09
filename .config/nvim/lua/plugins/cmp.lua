@@ -41,7 +41,9 @@ return {
 				},
 				ghost_text = { enabled = true },
 				menu = {
-					-- max_items = 100,
+					auto_show = function(ctx)
+						return ctx.mode ~= "cmdline"
+					end,
 					border = "single",
 					draw = {
 						columns = { { "kind_icon" }, { "label", gap = 1 } },
@@ -60,7 +62,7 @@ return {
 				documentation = {
 					window = { border = "single" },
 					auto_show = true,
-					auto_show_delay_ms = 500,
+					auto_show_delay_ms = 200,
 				},
 			},
 			fuzzy = {
@@ -72,8 +74,12 @@ return {
 					copilot = {
 						name = "copilot",
 						module = "blink-copilot",
-						score_offset = 100,
+						score_offset = 0,
 						async = true,
+						min_keyword_length = 0,
+					},
+					lsp = {
+						score_offset = 10,
 					},
 				},
 			},

@@ -12,11 +12,13 @@ return {
 			{ ";b", "<cmd>Telescope buffers<cr>", desc = "Buffers" },
 			{ ";;", "<cmd>Telescope resume<cr>", desc = "Resume last search" },
 			{ ";e", "<cmd>Telescope file_browser path=%:p:h select_buffer=true<cr>", desc = "File Browser (Root)" },
+			{ ";d", "<cmd>Telescope diagnostics<cr>", desc = "Diagnostics (Workspace)" },
 		},
 		config = function()
 			local telescope = require("telescope")
 			local actions = require("telescope.actions")
 			local fb_actions = telescope.extensions.file_browser.actions
+			local open_with_trouble = require("trouble.sources.telescope").open
 			telescope.setup({
 				defaults = {
 					vimgrep_arguments = {
@@ -66,6 +68,7 @@ return {
 							["<C-k>"] = actions.move_selection_previous,
 							["<C-n>"] = actions.cycle_history_next,
 							["<C-p>"] = actions.cycle_history_prev,
+							["<C-t>"] = open_with_trouble,
 						},
 					},
 				},
@@ -95,7 +98,6 @@ return {
 		"akinsho/toggleterm.nvim",
 		version = "*",
 		cmd = { "ToggleTerm", "TermSelect", "ToggleTermToggleAll" },
-
 		keys = {
 			{ [[<C-\>]], "<cmd>ToggleTerm<cr>", desc = "Toggle Terminal" },
 			{ "<leader>th", "<cmd>ToggleTerm direction=horizontal<cr>", desc = "Terminal Horizontal" },
@@ -123,7 +125,6 @@ return {
 					winblend = 0,
 				},
 			})
-
 			-- Open terminal with ID
 			-- Ex: 1<C-\> Open terminal 1, 2<C-\> Open terminal 2
 			function _G.set_terminal_keymaps()
@@ -135,7 +136,6 @@ return {
 				vim.keymap.set("t", "<C-k>", [[<Cmd>wincmd k<CR>]], opts)
 				vim.keymap.set("t", "<C-l>", [[<Cmd>wincmd l<CR>]], opts)
 			end
-
 			vim.api.nvim_create_autocmd("TermOpen", {
 				pattern = "term://*",
 				callback = function()
@@ -226,7 +226,6 @@ return {
 				end
 				return " " .. table.concat(client_names, ", ")
 			end
-
 			local function inlay_status()
 				if vim.lsp.inlay_hint and vim.lsp.inlay_hint.is_enabled({ bufnr = 0 }) then
 					return "󰄲 Hints"
@@ -355,5 +354,130 @@ return {
 				desc = "Remote Flash",
 			},
 		},
+	},
+	{
+		"folke/trouble.nvim",
+		opts = {
+			focus = true,
+			win = {
+				position = "right",
+				size = 30,
+				border = "single",
+				padding = false,
+			},
+			icons = {
+				indent = {
+					top = "│ ",
+					middle = "├╴",
+					last = "└╴",
+					fold_open = " ",
+					fold_closed = " ",
+					ws = "  ",
+				},
+				folder_closed = " ",
+				folder_open = " ",
+				kinds = {},
+			},
+			modes = {
+				preview_float = {
+					mode = "diagnostics",
+					preview = {
+						type = "float",
+						relative = "editor",
+						border = "rounded",
+						title = "Preview",
+						title_pos = "center",
+						position = { 0, -2 },
+						size = { width = 0.3, height = 0.3 },
+						zindex = 200,
+					},
+				},
+				diagnostics = {
+					auto_close = true,
+					groups = {
+						{ "filename", format = "{file_icon} {basename:Title} {count}" },
+					},
+					format = "{severity_icon} {message:md} {source}",
+					-- filter = { severity = vim.diagnostic.severity.ERROR },
+				},
+				symbols = {
+					win = { position = "right", size = {
+						width = 45,
+						height = 15,
+					} },
+					filter = {
+						any = {
+							ft = { "help", "markdown" },
+							kind = {
+								"Class",
+								"Constructor",
+								"Enum",
+								"Field",
+								"Function",
+								"Interface",
+								"Method",
+								"Module",
+								"Namespace",
+								"Package",
+								"Property",
+								"Struct",
+								"Trait",
+							},
+						},
+					},
+				},
+				lsp = {
+					win = { position = "right", size = 40 },
+				},
+			},
+		},
+		cmd = "Trouble",
+		keys = {
+			{
+				"<leader>xx",
+				"<cmd>Trouble diagnostics toggle<cr>",
+				desc = "Diagnostics (Trouble)",
+			},
+			{
+				"<leader>xX",
+				"<cmd>Trouble diagnostics toggle filter.buf=0<cr>",
+				desc = "Buffer Diagnostics (Trouble)",
+			},
+			{
+				"<leader>xh",
+				"<cmd>Trouble diagnostics toggle win.position=bottom<cr>",
+				desc = "Diagnostics (Horizontal)",
+			},
+			{
+				"<leader>xv",
+				"<cmd>Trouble diagnostics toggle win.position=right<cr>",
+				desc = "Diagnostics (Vertical)",
+			},
+			{
+				"<leader>cs",
+				"<cmd>Trouble symbols toggle focus=false<cr>",
+				desc = "Symbols (Trouble)",
+			},
+			{
+				"<leader>cl",
+				"<cmd>Trouble lsp toggle focus=false win.position=right<cr>",
+				desc = "LSP Definitions / references / ... (Trouble)",
+			},
+			{
+				"<leader>xL",
+				"<cmd>Trouble loclist toggle<cr>",
+				desc = "Location List (Trouble)",
+			},
+			{
+				"<leader>xQ",
+				"<cmd>Trouble qflist toggle<cr>",
+				desc = "Quickfix List (Trouble)",
+			},
+		},
+	},
+	{
+		"NStefan002/screenkey.nvim",
+		lazy = false,
+		version = "*",
 	},
 }

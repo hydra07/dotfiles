@@ -45,6 +45,19 @@ return {
 			{ "<A-Up>", ":m '<-2<cr>gv=gv", desc = "Move Block Up", mode = "v" },
 			{ "<A-Down>", "<esc><cmd>m .+1<cr>==gi", desc = "Move Line Down", mode = "i" },
 			{ "<A-Up>", "<esc><cmd>m .-2<cr>==gi", desc = "Move Line Up", mode = "i" },
+			-- Navigation
+			{ "<C-h>", "<C-w>h", desc = "Go to Left Window" },
+			{ "<C-j>", "<C-w>j", desc = "Go to Bottom Window" },
+			{ "<C-k>", "<C-w>k", desc = "Go to Top Window" },
+			{ "<C-l>", "<C-w>l", desc = "Go to Right Window" },
+			{ "<C-h>", "<cmd>wincmd h<cr>", desc = "Go to Left Window", mode = "t" },
+			{ "<C-j>", "<cmd>wincmd j<cr>", desc = "Go to Lower Window", mode = "t" },
+			{ "<C-k>", "<cmd>wincmd k<cr>", desc = "Go to Upper Window", mode = "t" },
+			{ "<C-l>", "<cmd>wincmd l<cr>", desc = "Go to Right Window", mode = "t" },
+			{ "<M-h>", "<Left>", desc = "Move Left", mode = "i" },
+			{ "<M-j>", "<Down>", desc = "Move Down", mode = "i" },
+			{ "<M-k>", "<Up>", desc = "Move Up", mode = "i" },
+			{ "<M-l>", "<Right>", desc = "Move Right", mode = "i" },
 			-- 1. FILE & SAVE
 			{
 				"<C-s>",
