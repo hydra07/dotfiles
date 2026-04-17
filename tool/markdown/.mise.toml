@@ -1,0 +1,26 @@
+[tools]
+uv = "latest"
+
+[env]
+_.python.venv = { path = ".venv", create = true }
+
+[tasks.setup]
+description = "Install dependencies"
+run = [
+    "uv python install 3.14",
+    "uv venv --python 3.14",
+    "uv pip install markdown jinja2 pygments weasyprint playwright",
+    "uv run playwright install chromium" 
+]
+
+[tasks.md2pdf]
+description = "Convert Markdown to PDF"
+run = "python md2pdf.py"
+
+[tasks.run]
+description = "Universal runner for python scripts"
+run = "uv run python {{config.task.name}}.py"
+
+[tasks.release]
+description = "Release the project"
+run = "python scripts/release.py"

@@ -9,4 +9,7 @@ java = "temurin-21"
 
 [settings]
 trusted_config_paths = ["~/.config"]
+experimental = true
+jobs = 5
+
 python_venv_auto_create = true

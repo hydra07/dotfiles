@@ -197,6 +197,14 @@ return {
 			"AndreM222/copilot-lualine",
 		},
 		opts = function()
+			local colors = {
+				blue = "#89b4fa",
+				green = "#a6e3a1",
+				peach = "#fab387",
+				red = "#f38ba8",
+				yellow = "#f9e2af",
+			}
+
 			local function get_formatter()
 				local ok, conform = pcall(require, "conform")
 				if not ok then
@@ -206,7 +214,12 @@ return {
 				if #formatters == 0 then
 					return ""
 				end
-				return formatters[1].name
+
+				local names = {}
+				for _, f in ipairs(formatters) do
+					table.insert(names, f.name)
+				end
+				return "󰉼 " .. table.concat(names, ", ")
 			end
 
 			local function get_lsp_client()
@@ -214,18 +227,20 @@ return {
 				if #clients == 0 then
 					return ""
 				end
-				local formatter_name = get_formatter()
+
 				local client_names = {}
 				for _, client in ipairs(clients) do
-					if client.name ~= formatter_name and client.name ~= "copilot" then
+					if client.name ~= "copilot" then
 						table.insert(client_names, client.name)
 					end
 				end
+
 				if #client_names == 0 then
 					return ""
 				end
 				return " " .. table.concat(client_names, ", ")
 			end
+
 			local function inlay_status()
 				if vim.lsp.inlay_hint and vim.lsp.inlay_hint.is_enabled({ bufnr = 0 }) then
 					return "󰄲 Hints"
@@ -235,19 +250,26 @@ return {
 
 			return {
 				options = {
-					theme = catppuccin,
-					component_separators = { left = "│", right = "│" },
-					section_separators = { left = "", right = "" },
+					-- theme = "catppuccin",
+					section_separators = { left = "", right = "" },
+					component_separators = { left = "", right = "" },
 					globalstatus = true,
 					refresh = { statusline = 1000 },
-					disabled_filetypes = { statusline = { "dashboard", "alpha", "neo-tree" } },
+					always_divide_middle = true,
+					disabled_filetypes = {
+						statusline = { "dashboard", "alpha", "neo-tree", "lazy", "mason" },
+					},
 				},
 				sections = {
 					lualine_a = { { "mode", right_padding = 2 } },
 					lualine_b = { "branch", "diff", "diagnostics" },
 					lualine_c = {
 						{ "filetype", icon_only = true, separator = "", padding = { left = 1, right = 0 } },
-						{ "filename", path = 1 },
+						{
+							"filename",
+							path = 1,
+							symbols = { modified = "  ", readonly = "  ", unnamed = "  " },
+						},
 					},
 					lualine_x = {
 						{
@@ -261,30 +283,34 @@ return {
 										unknown = " ",
 									},
 									hl = {
-										enabled = "#50fa7b",
-										disabled = "#ff5555",
-										warning = "#ffb86c",
-										unknown = "#ff5555",
+										enabled = colors.green,
+										disabled = colors.red,
+										warning = colors.yellow,
+										unknown = colors.red,
 									},
 								},
 							},
 							show_colors = true,
 							show_loading = true,
 						},
-						{ inlay_status, color = { fg = "#fab387" } },
 						{
-							function()
-								local f = get_formatter()
-								return f ~= "" and ("󰉼 " .. f) or ""
-							end,
-							color = { fg = "#a6e3a1" },
+							inlay_status,
+							color = { fg = colors.peach, gui = "bold" },
 							cond = function()
-								return get_formatter() ~= ""
+								return inlay_status() ~= ""
+							end,
+						},
+						{
+							get_formatter,
+							color = { fg = colors.green },
+							cond = function()
+								local ok, conform = pcall(require, "conform")
+								return ok and #conform.list_formatters(0) > 0
 							end,
 						},
 						{
 							get_lsp_client,
-							color = { fg = "#89b4fa", gui = "bold" },
+							color = { fg = colors.blue, gui = "bold" },
 							cond = function()
 								return #vim.lsp.get_clients({ bufnr = 0 }) > 0
 							end,
@@ -479,5 +505,14 @@ return {
 		"NStefan002/screenkey.nvim",
 		lazy = false,
 		version = "*",
+	},
+	{
+		"iamcco/markdown-preview.nvim",
+		cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
+		build = "cd app && bun i",
+		init = function()
+			vim.g.mkdp_filetypes = { "markdown" }
+		end,
+		ft = { "markdown" },
 	},
 }

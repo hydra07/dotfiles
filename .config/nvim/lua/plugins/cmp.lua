@@ -97,7 +97,7 @@ return {
 						auto_show = true,
 						draw = { columns = { { "label" } } },
 					},
-					list = { selection = { preselect = true, auto_insert = true } },
+					list = { selection = { preselect = true, auto_insert = false } },
 					ghost_text = { enabled = false },
 				},
 				sources = function()

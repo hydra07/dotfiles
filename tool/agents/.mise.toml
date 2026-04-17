@@ -1,0 +1,22 @@
+
+[tools]
+uv = "latest"
+
+[env]
+_.python.venv = { path = ".venv", create = true }
+
+[tasks.setup]
+description = "Install dependencies"
+run = [
+    "uv python install 3.14",
+    "uv venv --python 3.14 --clear",
+    "uv pip install rich"
+]
+
+[tasks.run]
+description = "Universal runner for python scripts"
+run = "uv run python {{config.task.name}}.py"
+
+[tasks.release]
+description = "Release the project"
+run = "python scripts/release.py"
