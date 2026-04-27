@@ -1,5 +1,6 @@
-if type -q exa
-    alias ll "exa -l -g --icons"
+if type -q eza
+    alias ls "eza"
+    alias ll "eza -l -g --icons"
     alias lla "ll -a"
     alias pacman='pacman --color=always'
 end
