@@ -1,10 +1,7 @@
 return {
 	{
 		"nvim-mini/mini.nvim",
-		event = {
-			"BufReadPre",
-			"BufNewFile",
-		},
+		event = { "BufReadPost", "InsertEnter" },
 		version = false,
 		config = function()
 			require("mini.pairs").setup()
@@ -20,6 +17,12 @@ return {
 					animation = require("mini.indentscope").gen_animation.none(),
 				},
 			})
+			vim.api.nvim_create_autocmd("FileType", {
+				pattern = { "help", "lazy", "mason", "notify", "NvimTree", "neo-tree", "terminal", "dashboard" },
+				callback = function(args)
+					vim.b[args.buf].miniindentscope_disable = true
+				end,
+			})
 			require("mini.comment").setup({
 				options = {
 					custom_commentstring = function()
@@ -28,7 +31,6 @@ return {
 				},
 			})
 			require("mini.icons").setup()
-			require("mini.icons").mock_nvim_web_devicons()
 		end,
 	},
 }

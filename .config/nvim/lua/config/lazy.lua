@@ -17,7 +17,9 @@ require("lazy").setup({
 		version = false,
 	},
 	checker = { enabled = false },
+	change_detection = { enabled = false },
 	performance = {
+		cache = { enabled = true },
 		rtp = {
 			disabled_plugins = {
 				"gzip",
@@ -28,6 +30,14 @@ require("lazy").setup({
 				"tohtml",
 				"tutor",
 				"zipPlugin",
+				-- Additional disabled plugins for faster startup
+				"2html_plugin",
+				"getscript",
+				"getscriptPlugin",
+				"logipat",
+				"rrhelper",
+				"vimball",
+				"vimballPlugin",
 			},
 		},
 	},

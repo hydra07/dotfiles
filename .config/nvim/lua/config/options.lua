@@ -11,6 +11,8 @@ opt.numberwidth = 4
 opt.signcolumn = "yes"
 opt.cursorline = true
 opt.colorcolumn = ""
+opt.updatetime = 1000
+opt.timeoutlen = 300
 
 -- Indent
 opt.tabstop = 2

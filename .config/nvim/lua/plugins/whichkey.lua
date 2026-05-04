@@ -24,15 +24,16 @@ return {
 				{ "<leader>f", group = "File/Find" },
 				{ "<leader>e", desc = "Explorer" },
 				{ "<leader>s", group = "Flash/Jump", icon = "⚡" },
-				{ "<leader>g", group = "Git" },
+				{ "<leader>g", group = "Git", icon = "" },
 				{ "<leader>l", group = "LSP" },
 				{ "<leader>w", group = "Window/Split" },
 				{ "<leader>b", group = "Buffer" },
 				{ "<leader>v", group = "Neovide" },
 				{ "<leader>t", group = "Terminal" },
 				{ "<leader>c", group = "Code/Copilot" },
-				{ ";", group = "Telescope/QuickActions" },
+				{ ";", group = "Telescope", icon = "" },
 				{ ";h", desc = "Toggle Inlay Hints" },
+				{ "g", group = "Go to / LSP Navigate" },
 			},
 		},
 		keys = {
@@ -192,11 +193,20 @@ return {
 			{
 				"<leader>cf",
 				function()
-					require("conform").format({ async = true, lsp_format = "fallback" })
+					require("conform").format({ async = true, lsp_format = "fallback" }, function(err, did_edit)
+						if err then
+							vim.notify("Format failed: " .. err, vim.log.levels.ERROR, { title = "Conform" })
+							return
+						end
+						if did_edit then
+							vim.notify("Formatted buffer", vim.log.levels.INFO, { title = "Conform" })
+						else
+							vim.notify("No formatting changes", vim.log.levels.INFO, { title = "Conform" })
+						end
+					end)
 				end,
 				desc = "Format Buffer",
 			},
-			{ "<leader>ct", "<cmd>Copilot toggle<cr>", desc = "Toggle Copilot" },
 			{ "<leader>ci", "<cmd>ConformInfo<cr>", desc = "Conform Info" },
 			-- 6. TERMINAL
 			{ "<leader>t1", "<cmd>1ToggleTerm direction=horizontal<cr>", desc = "Terminal 1 (Down)" },
