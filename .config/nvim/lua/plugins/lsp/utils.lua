@@ -24,20 +24,24 @@ function M.setup_diagnostics()
     virtual_text = {
       spacing = 4,
       prefix = "●",
-      severity = { min = vim.diagnostic.severity.HINT },
+      severity = { min = vim.diagnostic.severity.WARN },
     },
     signs = {
       text = {
-        [vim.diagnostic.severity.ERROR] = " ",
-        [vim.diagnostic.severity.WARN] = " ",
+        [vim.diagnostic.severity.ERROR] = " ",
+        [vim.diagnostic.severity.WARN] = " ",
         [vim.diagnostic.severity.HINT] = "󰌵 ",
-        [vim.diagnostic.severity.INFO] = " ",
+        [vim.diagnostic.severity.INFO] = " ",
       },
     },
     underline = true,
     update_in_insert = false,
     severity_sort = true,
   })
+
+  -- Apply border to LSP hover and signature help windows
+  vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = "single" })
+  vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = "single" })
 end
 
 --- LspAttach / LspDetach autocmds
@@ -49,17 +53,21 @@ function M.setup_attach()
       if not client then return end
 
       if client:supports_method("textDocument/documentHighlight") then
-        local hl_group = vim.api.nvim_create_augroup("LspDocHL_" .. args.buf, { clear = true })
-        vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
-          buffer = args.buf,
-          group = hl_group,
-          callback = vim.lsp.buf.document_highlight,
-        })
-        vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
-          buffer = args.buf,
-          group = hl_group,
-          callback = vim.lsp.buf.clear_references,
-        })
+        local bufnr = args.buf
+        local line_count = vim.api.nvim_buf_line_count(bufnr)
+        if line_count < 3000 then
+          local hl_group = vim.api.nvim_create_augroup("LspDocHL_" .. bufnr, { clear = true })
+          vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
+            buffer = bufnr,
+            group = hl_group,
+            callback = vim.lsp.buf.document_highlight,
+          })
+          vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
+            buffer = bufnr,
+            group = hl_group,
+            callback = vim.lsp.buf.clear_references,
+          })
+        end
       end
 
       if client:supports_method("textDocument/codeLens")
@@ -67,6 +75,10 @@ function M.setup_attach()
         and client.name ~= "eslint"
       then
         vim.lsp.codelens.enable(true, { bufnr = args.buf })
+      end
+
+      if client:supports_method("textDocument/inlayHint") then
+        vim.lsp.inlay_hint.enable(true, { bufnr = args.buf })
       end
     end,
   })
@@ -124,7 +136,8 @@ function M.setup_keymaps()
   end, { desc = "Diagnostics: Copy buffer" })
 
   vim.keymap.set("n", ";h", function()
-    vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
+    local bufnr = vim.api.nvim_get_current_buf()
+    vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr }), { bufnr = bufnr })
   end, { desc = "LSP: Toggle inlay hints" })
 end
 

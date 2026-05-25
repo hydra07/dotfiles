@@ -1,14 +1,19 @@
--- Lua: lua_ls (Neovim development)
-vim.lsp.config("lua_ls", {
+-- Lua LS Configuration
+return {
   settings = {
     Lua = {
-      runtime = { version = "LuaJIT" },
       workspace = {
         checkThirdParty = false,
-        library = { vim.env.VIMRUNTIME },
       },
-      diagnostics = { globals = { "vim" } },
-      telemetry = { enable = false },
+      codeLens = {
+        enable = true,
+      },
+      completion = {
+        callSnippet = "Replace",
+      },
+      doc = {
+        privateName = { "^_" },
+      },
       hint = {
         enable = true,
         setType = false,
@@ -19,4 +24,4 @@ vim.lsp.config("lua_ls", {
       },
     },
   },
-})
+}

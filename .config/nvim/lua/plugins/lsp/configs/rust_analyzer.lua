@@ -1,8 +1,9 @@
--- Rust: rust_analyzer
-vim.lsp.config("rust_analyzer", {
+-- Rust Analyzer Configuration
+return {
   settings = {
     ["rust-analyzer"] = {
-      checkOnSave = { command = "clippy" },
+      checkOnSave = true,
+      check = { command = "clippy" },
       cargo = { allFeatures = true },
       procMacro = { enable = true },
       inlayHints = {
@@ -14,4 +15,4 @@ vim.lsp.config("rust_analyzer", {
       },
     },
   },
-})
+}

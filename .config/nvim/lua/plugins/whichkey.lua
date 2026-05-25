@@ -4,6 +4,7 @@ return {
 		event = "VeryLazy",
 		opts = {
 			preset = "helix",
+			delay = 0,
 			plugins = {
 				marks = true,
 				registers = true,
@@ -21,22 +22,29 @@ return {
 				group = "+",
 			},
 			spec = {
-				{ "<leader>f", group = "File/Find" },
+				{ "<leader>f", group = "File/Save" },
 				{ "<leader>e", desc = "Explorer" },
-				{ "<leader>s", group = "Flash/Jump", icon = "⚡" },
+				{ "<leader>s", group = "Search/Jump", icon = "⚡" },
 				{ "<leader>g", group = "Git", icon = "" },
-				{ "<leader>l", group = "LSP" },
-				{ "<leader>w", group = "Window/Split" },
+				{ "<leader>gh", group = "Git Hunk" },
+				{ "<leader>c", group = "Code/LSP" },
+				{ "<leader>w", group = "Window" },
 				{ "<leader>b", group = "Buffer" },
 				{ "<leader>v", group = "Neovide" },
 				{ "<leader>t", group = "Terminal" },
-				{ "<leader>c", group = "Code/Copilot" },
+				{ "<leader>p", desc = "Command Palette" },
 				{ ";", group = "Telescope", icon = "" },
 				{ ";h", desc = "Toggle Inlay Hints" },
 				{ "g", group = "Go to / LSP Navigate" },
 			},
 		},
 		keys = {
+			-- Natural line wrap navigation
+			{ "j", "v:count == 0 ? 'gj' : 'j'", desc = "Move Down (wrapped lines)", mode = { "n", "x" }, expr = true, silent = true },
+			{ "k", "v:count == 0 ? 'gk' : 'k'", desc = "Move Up (wrapped lines)", mode = { "n", "x" }, expr = true, silent = true },
+			-- Diagnostics navigation
+			{ "[d", function() vim.diagnostic.goto_prev() end, desc = "Prev Diagnostic" },
+			{ "]d", function() vim.diagnostic.goto_next() end, desc = "Next Diagnostic" },
 			-- Move block up/down in Visual Mode with J/K
 			{ "J", ":m '>+1<cr>gv=gv", desc = "Move Block Down", mode = "v" },
 			{ "K", ":m '<-2<cr>gv=gv", desc = "Move Block Up", mode = "v" },
@@ -98,9 +106,9 @@ return {
 				desc = "Close Window",
 			},
 			{
-				"<leader>wo",
+				"<leader>wD",
 				"<cmd>only<cr>",
-				desc = "Close Others",
+				desc = "Close Other Windows",
 			},
 			-- 3. BUFFER MANAGEMENT
 			{
@@ -117,6 +125,24 @@ return {
 				"<leader>bd",
 				"<cmd>bdelete<cr>",
 				desc = "Delete Buffer",
+			},
+			{
+				"<leader>bD",
+				function()
+					local current = vim.api.nvim_get_current_buf()
+					for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+						if bufnr ~= current and vim.api.nvim_buf_is_loaded(bufnr) and vim.bo[bufnr].buflitered then
+							pcall(vim.api.nvim_buf_delete, bufnr, { force = false })
+						end
+					end
+					vim.notify("Closed other buffers", vim.log.levels.INFO)
+				end,
+				desc = "Close Other Buffers",
+			},
+			{
+				"<leader>p",
+				"<cmd>Telescope keymaps<cr>",
+				desc = "Command Palette (Search Keymaps)",
 			},
 			-- 4. NEOVIDE GUI OPTIMIZATION
 			{
@@ -169,24 +195,24 @@ return {
 				end,
 				desc = "Reset Font Size",
 			},
-			-- 5. LSP & CODE
+			-- 5. CODE & LSP
 			{
-				"<leader>la",
+				"<leader>ca",
 				vim.lsp.buf.code_action,
 				desc = "Code Action",
 			},
 			{
-				"<leader>lr",
+				"<leader>cr",
 				vim.lsp.buf.rename,
 				desc = "Rename Symbol",
 			},
 			{
-				"<leader>li",
+				"<leader>cl",
 				"<cmd>LspInfo<cr>",
 				desc = "LSP Information",
 			},
 			{
-				"<leader>lm",
+				"<leader>cm",
 				"<cmd>Mason<cr>",
 				desc = "Mason Manager",
 			},

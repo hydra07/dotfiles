@@ -19,19 +19,36 @@ vim.api.nvim_create_autocmd("VimEnter", {
 		local is_no_args = vim.fn.argc() == 0
 		local is_directory = vim.fn.argc() == 1 and vim.fn.isdirectory(arg) == 1
 
-		if is_no_args or is_directory then
+		if is_directory then
 			vim.defer_fn(function()
-				local dir = vim.loop.cwd()
-				if is_directory then
-					dir = vim.fn.fnamemodify(arg, ":p")
-					vim.cmd.cd(dir)
-					local buf = vim.api.nvim_get_current_buf()
-					if vim.api.nvim_buf_is_valid(buf) then
-						pcall(vim.api.nvim_buf_delete, buf, { force = true })
-					end
+				local dir = vim.fn.fnamemodify(arg, ":p")
+				vim.cmd.cd(dir)
+				local buf = vim.api.nvim_get_current_buf()
+				if vim.api.nvim_buf_is_valid(buf) then
+					pcall(vim.api.nvim_buf_delete, buf, { force = true })
 				end
 				require("telescope").extensions.file_browser.file_browser({ path = dir })
 			end, 30)
 		end
 	end,
 })
+
+-- Toggle cursorline in insert mode to reduce typing lag
+local cursorline_group = augroup("cursorline_toggle")
+vim.api.nvim_create_autocmd({ "InsertEnter", "WinLeave" }, {
+	group = cursorline_group,
+	pattern = "*",
+	callback = function()
+		vim.opt_local.cursorline = false
+	end,
+})
+vim.api.nvim_create_autocmd({ "InsertLeave", "WinEnter" }, {
+	group = cursorline_group,
+	pattern = "*",
+	callback = function()
+		if vim.bo.filetype ~= "neo-tree" and vim.bo.filetype ~= "TelescopePrompt" then
+			vim.opt_local.cursorline = true
+		end
+	end,
+})
+

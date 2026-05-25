@@ -16,6 +16,13 @@ return {
 				},
 			},
 		},
+		init = function()
+			require("vim.treesitter.query").add_predicate("is-mise?", function(_, _, bufnr, _)
+				local filepath = vim.api.nvim_buf_get_name(tonumber(bufnr) or 0)
+				local filename = vim.fn.fnamemodify(filepath, ":t")
+				return string.match(filename, ".*mise.*%.toml$") ~= nil
+			end, { force = true, all = false })
+		end,
 		config = function()
 			local max_filesize = 1024 * 1024 -- 1MB
 			local function is_large_file(bufnr)
@@ -73,6 +80,30 @@ return {
 							["ic"] = "@class.inner",
 							["aa"] = "@parameter.outer",
 							["ia"] = "@parameter.inner",
+						},
+					},
+					move = {
+						enable = true,
+						set_jumps = true,
+						goto_next_start = {
+							["]f"] = { query = "@function.outer", desc = "Next function start" },
+							["]cl"] = { query = "@class.outer", desc = "Next class start" },
+							["]a"] = { query = "@parameter.inner", desc = "Next parameter start" },
+							["]o"] = { query = { "@conditional.outer", "@loop.outer" }, desc = "Next block start" },
+						},
+						goto_next_end = {
+							["]F"] = { query = "@function.outer", desc = "Next function end" },
+							["]Cl"] = { query = "@class.outer", desc = "Next class end" },
+						},
+						goto_previous_start = {
+							["[f"] = { query = "@function.outer", desc = "Previous function start" },
+							["[cl"] = { query = "@class.outer", desc = "Previous class start" },
+							["[a"] = { query = "@parameter.inner", desc = "Previous parameter start" },
+							["[o"] = { query = { "@conditional.outer", "@loop.outer" }, desc = "Previous block start" },
+						},
+						goto_previous_end = {
+							["[F"] = { query = "@function.outer", desc = "Previous function end" },
+							["[Cl"] = { query = "@class.outer", desc = "Previous class end" },
 						},
 					},
 				},

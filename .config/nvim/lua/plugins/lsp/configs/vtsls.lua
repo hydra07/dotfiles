@@ -1,8 +1,5 @@
--- TypeScript/JavaScript: vtsls + ESLint
--- Handles: .ts, .tsx, .js, .jsx
-
--- ── vtsls ──────────────────────────────────────────────────────────────
-vim.lsp.config("vtsls", {
+-- vtsls (TypeScript/JavaScript) Configuration
+return {
   filetypes = {
     "javascript",
     "javascriptreact",
@@ -15,7 +12,6 @@ vim.lsp.config("vtsls", {
     typescript = {
       updateImportsOnFileMove = { enabled = "always" },
       suggest = { completeFunctionCalls = true },
-      -- JSX/TSX: tell vtsls about React JSX transform
       preferences = {
         jsxAttributeCompletionStyle = "auto",
         importModuleSpecifierPreference = "relative",
@@ -62,33 +58,4 @@ vim.lsp.config("vtsls", {
       },
     },
   },
-})
-
--- ── ESLint ──────────────────────────────────────────────────────────────
-vim.lsp.config("eslint", {
-  root_markers = {
-    ".eslintrc",
-    ".eslintrc.js",
-    ".eslintrc.cjs",
-    ".eslintrc.json",
-    ".eslintrc.yaml",
-    ".eslintrc.yml",
-    "eslint.config.js",
-    "eslint.config.mjs",
-    "eslint.config.cjs",
-  },
-  settings = {
-    workingDirectories = { mode = "auto" },
-    format = true,
-    run = "onSave",
-    quiet = false,
-    onIgnoredFiles = "off",
-    problems = { shortenToSingleLine = false },
-  },
-  on_attach = function(_, bufnr)
-    vim.api.nvim_create_autocmd("BufWritePre", {
-      buffer = bufnr,
-      command = "EslintFixAll",
-    })
-  end,
-})
+}

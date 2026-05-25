@@ -6,7 +6,8 @@ go = "latest"
 rust = "latest"
 pnpm = "latest"
 java = "temurin-21"
-
+jq = "latest"
+hurl = "latest"
 [settings]
 trusted_config_paths = ["~/.config"]
 experimental = true

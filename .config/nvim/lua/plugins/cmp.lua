@@ -136,6 +136,10 @@ return {
 										return icon .. " "
 									end,
 									highlight = function(ctx)
+										local hl = ctx.kind_hl
+										if ctx.kind == "Color" then
+											return hl
+										end
 										return "BlinkCmpKind" .. ctx.kind
 									end,
 								},

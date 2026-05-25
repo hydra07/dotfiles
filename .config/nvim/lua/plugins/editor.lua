@@ -9,11 +9,18 @@ return {
 				"nvim-telescope/telescope-live-grep-args.nvim",
 				version = "^1.0.0",
 			},
-			{ "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
+			{
+				"nvim-telescope/telescope-fzf-native.nvim",
+				build = vim.fn.has("win32") == 1
+					and "cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release"
+					or "make",
+			},
+			"nvim-telescope/telescope-frecency.nvim",
+			"debugloop/telescope-undo.nvim",
 		},
 		keys = {
 			-- ─── Core File Navigation ──────────────────────────────────
-			{ ";f", "<cmd>Telescope find_files<cr>", desc = "Find Files" },
+			{ ";f", "<cmd>Telescope frecency workspace=CWD<cr>", desc = "Find Files (Frecency)" },
 			{
 				";F",
 				function()
@@ -21,6 +28,8 @@ return {
 				end,
 				desc = "Find Files (All, incl hidden/ignored)",
 			},
+			{ ";u", "<cmd>Telescope undo<cr>", desc = "Undo History" },
+			{ ";a", "<cmd>Telescope aerial<cr>", desc = "Code Outline (Aerial)" },
 			{
 				";o",
 				function()
@@ -173,6 +182,25 @@ return {
 				end
 				actions.select_default(prompt_bufnr)
 			end
+
+			-- Custom high-performance buffer previewer maker
+			local previewers = require("telescope.previewers")
+			local custom_previewer_maker = function(filepath, bufnr, opts)
+				opts = opts or {}
+				filepath = vim.fn.expand(filepath)
+				vim.loop.fs_stat(filepath, function(err, stat)
+					if not err and stat then
+						if stat.size > 102400 or filepath:match("%.min%.") or filepath:match("-lock%.") then
+							vim.schedule(function()
+								vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, { "File too large or minified to preview" })
+							end)
+							return
+						end
+					end
+					previewers.buffer_previewer_maker(filepath, bufnr, opts)
+				end)
+			end
+
 			telescope.setup({
 				defaults = {
 					vimgrep_arguments = {
@@ -187,7 +215,6 @@ return {
 						"--glob=!.git/*",
 						"--glob=!**/build/*",
 						"--glob=!**/dist/*",
-						-- for node
 						"--glob=!**/node_modules/*",
 						"--glob=!**/.next/*",
 						"--glob=!**/package-lock.json",
@@ -224,6 +251,12 @@ return {
 						"%.git/",
 					},
 					cache_picker = false,
+					debounce = 150,
+					buffer_previewer_maker = custom_previewer_maker,
+					preview = {
+						filesize_limit = 0.1,
+						timeout = 150,
+					},
 					mappings = {
 						i = {
 							["<C-j>"] = actions.move_selection_next,
@@ -235,7 +268,6 @@ return {
 							["<M-q>"] = send_selected_to_qflist_and_open,
 							["<C-x>"] = actions.delete_buffer,
 							["<Esc>"] = actions.close,
-							-- Open in splits
 							["<C-v>"] = actions.select_vertical,
 							["<C-t>"] = actions.select_tab,
 						},
@@ -279,26 +311,32 @@ return {
 						auto_quoting = true,
 					},
 					file_browser = {
-						-- theme = "ivy",
 						hijack_netrw = true,
 						hidden = true,
 						mappings = {
 							["i"] = {
-								["<C-a>"] = fb_actions.create, -- add
-								["<C-r>"] = fb_actions.rename, -- rename
-								["<C-d>"] = fb_actions.remove, -- delete
-								["<A-m>"] = fb_actions.move, -- move
-								["<C-h>"] = fb_actions.toggle_hidden, -- toggle hidden
+								["<C-a>"] = fb_actions.create,
+								["<C-r>"] = fb_actions.rename,
+								["<C-d>"] = fb_actions.remove,
+								["<A-m>"] = fb_actions.move,
+								["<C-h>"] = fb_actions.toggle_hidden,
 							},
 						},
 					},
+					fzf = {
+						fuzzy = true,
+						override_generic_sorter = true,
+						override_file_sorter = true,
+						case_mode = "smart_case",
+					},
 				},
 			})
-			-- Active extensions
 			telescope.load_extension("ui-select")
 			telescope.load_extension("file_browser")
 			telescope.load_extension("live_grep_args")
 			telescope.load_extension("fzf")
+			telescope.load_extension("frecency")
+			telescope.load_extension("undo")
 		end,
 	},
 	{
@@ -328,15 +366,13 @@ return {
 				close_on_exit = true,
 				shell = vim.o.shell,
 				float_opts = {
-					border = "single",
-					winblend = 0,
+					border = "rounded",
+					winblend = 10,
 				},
 			})
-			-- Open terminal with ID
-			-- Ex: 1<C-\> Open terminal 1, 2<C-\> Open terminal 2
 			local function set_terminal_keymaps()
 				local opts = { buffer = 0 }
-				vim.keymap.set("t", "<esc>", [[<C-\><C-n>]], opts)
+				vim.keymap.set("t", "<Esc><Esc>", [[<C-\><C-n>]], opts)
 				vim.keymap.set("t", "jk", [[<C-\><C-n>]], opts)
 				vim.keymap.set("t", "<C-h>", [[<Cmd>wincmd h<CR>]], opts)
 				vim.keymap.set("t", "<C-j>", [[<Cmd>wincmd j<CR>]], opts)
@@ -350,6 +386,15 @@ return {
 					set_terminal_keymaps()
 				end,
 			})
+			vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter" }, {
+				pattern = "term://*",
+				callback = function()
+					vim.cmd("startinsert")
+				end,
+			})
+			for i = 1, 9 do
+				vim.keymap.set({ "n", "t" }, "<leader>t" .. i, string.format("<cmd>%dToggleTerm<cr>", i), { desc = "Toggle Terminal " .. i })
+			end
 			vim.keymap.set("n", "<leader>tf", "<cmd>ToggleTerm direction=float<cr>", { desc = "Terminal Float" })
 			vim.keymap.set("n", "<leader>tv", "<cmd>ToggleTerm direction=vertical<cr>", { desc = "Terminal Vertical" })
 		end,
@@ -369,11 +414,11 @@ return {
 		opts = {
 			filesystem = {
 				filtered_items = {
-					visible = true, -- show hidden files
+					visible = true,
 					hide_dotfiles = false,
 				},
-				follow_current_file = { enabled = true }, -- show current file in tree
-				use_libuv_file_watcher = true, -- auto refresh
+				follow_current_file = { enabled = true },
+				use_libuv_file_watcher = true,
 			},
 			window = {
 				width = 30,
@@ -392,7 +437,9 @@ return {
 				peach = "#fab387",
 				red = "#f38ba8",
 				mauve = "#cba6f7",
-				subtext = "#585b70",
+				subtext = "#a6adc8",
+				bg = "#1e1e2e",
+				surface0 = "#313244",
 			}
 			local _cache = { lsp = "", fmt = "" }
 			local function refresh_cache()
@@ -408,8 +455,8 @@ return {
 						fmts[#fmts + 1] = f.name
 					end
 				end
-				_cache.lsp = #clients > 0 and (" " .. table.concat(clients, " · ")) or ""
-				_cache.fmt = #fmts > 0 and ("󰉼 " .. table.concat(fmts, " · ")) or ""
+				_cache.lsp = #clients > 0 and (" " .. table.concat(clients, "·")) or ""
+				_cache.fmt = #fmts > 0 and ("󰉼 " .. table.concat(fmts, "·")) or ""
 			end
 			local function tools_segment()
 				local parts = {}
@@ -421,39 +468,81 @@ return {
 				end
 				return table.concat(parts, " │ ")
 			end
+			local function terminal_status()
+				local ok, toggleterm = pcall(require, "toggleterm.terminal")
+				if not ok then return "" end
+				local terms = toggleterm.get_all()
+				if #terms == 0 then return "" end
+				local active_buf = vim.api.nvim_get_current_buf()
+				local parts = {}
+				for _, term in ipairs(terms) do
+					local is_current = (term.bufnr == active_buf)
+					local is_open = term:is_open()
+					local state = ""
+					if is_current then
+						state = "*"
+					elseif is_open then
+						state = "⚡"
+					else
+						state = "💤"
+					end
+					table.insert(parts, string.format("%d%s", term.id, state))
+				end
+				return "  " .. table.concat(parts, "·")
+			end
 			local function enc_display()
 				local enc = vim.bo.fileencoding
 				return (enc ~= "" and enc ~= "utf-8") and enc or ""
 			end
 
 			vim.api.nvim_create_autocmd({ "BufEnter", "LspAttach", "LspDetach" }, { callback = refresh_cache })
+			vim.api.nvim_create_autocmd({ "TermOpen", "TermClose", "BufEnter", "WinEnter" }, {
+				callback = function()
+					pcall(function()
+						require("lualine").refresh()
+					end)
+				end,
+			})
 
 			local ok, lualine = pcall(require, "lualine")
 			if not ok then
 				return
 			end
-			---@diagnostic disable-next-line: undefined-field
 			lualine.setup({
 				options = {
-					section_separators = { left = "", right = "" },
-					component_separators = { left = "", right = "" },
+					theme = "auto",
+					section_separators = { left = "", right = "" },
+					component_separators = { left = "", right = "" },
 					globalstatus = true,
-					refresh = { statusline = 2000 },
+					refresh = { statusline = 500 },
 					always_divide_middle = true,
-					disabled_filetypes = { statusline = { "dashboard", "alpha", "neo-tree", "lazy", "mason" } },
+					disabled_filetypes = { statusline = { "dashboard", "alpha", "neo-tree", "lazy", "mason", "toggleterm" } },
 				},
 				sections = {
-					lualine_a = { { "mode", right_padding = 2 } },
-					lualine_b = { "branch", "diff", "diagnostics" },
+					lualine_a = {
+						{ "mode" },
+					},
+					lualine_b = {
+						{ "branch", icon = "" },
+						"diff",
+						{ "diagnostics", symbols = { error = " ", warn = " ", info = " ", hint = "󰌵 " } },
+					},
 					lualine_c = {
 						{ "filetype", icon_only = true, separator = "", padding = { left = 1, right = 0 } },
 						{
 							"filename",
 							path = 1,
-							symbols = { modified = "●", readonly = "󰌾", unnamed = "󰡯" },
+							symbols = { modified = " ●", readonly = " 󰌾", unnamed = " [No Name]" },
 						},
 					},
 					lualine_x = {
+						{
+							terminal_status,
+							color = { fg = C.mauve, gui = "bold" },
+							cond = function()
+								return terminal_status() ~= ""
+							end,
+						},
 						{
 							tools_segment,
 							color = { fg = C.blue, gui = "bold" },
@@ -470,7 +559,9 @@ return {
 						},
 					},
 					lualine_y = { "progress" },
-					lualine_z = { "location" },
+					lualine_z = {
+						{ "location" },
+					},
 				},
 				extensions = { "neo-tree", "lazy", "mason", "toggleterm" },
 			})
@@ -546,5 +637,23 @@ return {
 				desc = "Treesitter Search",
 			},
 		},
+	},
+	{
+		"stevearc/aerial.nvim",
+		cmd = { "AerialToggle", "AerialNavToggle", "AerialInfo" },
+		opts = {
+			on_attach = function(bufnr)
+				vim.keymap.set("n", "{", "<cmd>AerialPrev<cr>", { buffer = bufnr })
+				vim.keymap.set("n", "}", "<cmd>AerialNext<cr>", { buffer = bufnr })
+			end,
+		},
+		dependencies = {
+			"nvim-treesitter/nvim-treesitter",
+			"nvim-tree/nvim-web-devicons",
+		},
+	},
+	{
+		"stevearc/dressing.nvim",
+		opts = {},
 	},
 }

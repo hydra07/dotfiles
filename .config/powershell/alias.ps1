@@ -6,16 +6,22 @@ Set-Alias python3 python
 # Set-Alias grep findstr
 Set-Alias tig 'C:\Program Files\Git\usr\bin\tig.exe'
 Set-Alias less 'C:\Program Files\Git\usr\bin\less.exe'
-function ll {
-  if (Get-Command eza -ErrorAction SilentlyContinue) {
+Set-Alias ls eza
+function ll
+{
+  if (Get-Command eza -ErrorAction SilentlyContinue)
+  {
     eza -l -g --icons --group-directories-first $args
-  } else {
+  } else
+  {
     ls $args
   }
 }
-function lla {
+function lla
+{
   eza -la -g --icons --group-directories-first $args 
 }
-function which ($command) {
+function which ($command)
+{
   (Get-Command -Name $command -ErrorAction SilentlyContinue).Path 
 }
