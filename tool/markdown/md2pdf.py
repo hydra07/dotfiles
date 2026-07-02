@@ -16,6 +16,7 @@ Features:
 from __future__ import annotations
 
 import argparse
+import html as html_lib
 import os
 import re
 import sys
@@ -31,15 +32,11 @@ from pygments.formatters import HtmlFormatter
 # MARKDOWN EXTENSIONS
 # ─────────────────────────────────────────────────────────────
 DEFAULT_EXTENSIONS = [
-    "extra",  # tables, footnotes, attr_list, def_list, abbr
-    "tables",
+    "extra",  # tables, fenced_code, attr_list, def_list, footnotes, abbr, md_in_html
+    "sane_lists",
     "toc",  # [TOC] macro + heading anchors
     "admonition",  # !!! note / warning / tip
-    "attr_list",
-    "sane_lists",
-    "md_in_html",
-    "codehilite",  # Pygments syntax highlight (replaces fenced_code)
-    "meta",  # YAML-like front matter (Key: Value)
+    "codehilite",  # Pygments syntax highlight
 ]
 
 EXTENSION_CONFIGS = {
@@ -514,6 +511,7 @@ body::after {
 # FRONT MATTER PARSER
 # ─────────────────────────────────────────────────────────────
 FRONTMATTER_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.DOTALL)
+MERMAID_BLOCK_RE = re.compile(r"```mermaid[ \t]*\n(.*?)```", re.DOTALL | re.IGNORECASE)
 
 
 def parse_frontmatter(text: str) -> tuple[dict, str]:
@@ -530,6 +528,29 @@ def parse_frontmatter(text: str) -> tuple[dict, str]:
     return meta, text[m.end() :]
 
 
+def preprocess_mermaid_blocks(text: str) -> tuple[str, bool]:
+    """
+    Convert fenced Mermaid blocks into <div class="mermaid"> ... </div>
+    so Playwright + MermaidJS can render diagrams before exporting PDF.
+    """
+    has_mermaid = False
+
+    def _replace(match: re.Match[str]) -> str:
+        nonlocal has_mermaid
+        has_mermaid = True
+        code = match.group(1).strip()
+        code_escaped = html_lib.escape(code)
+        code_attr = html_lib.escape(code, quote=True)
+        # Escape HTML-sensitive chars but preserve diagram syntax text.
+        return (
+            '<div class="mermaid-block">'
+            f'<div class="mermaid" data-mermaid-source="{code_attr}">{code_escaped}</div>'
+            "</div>"
+        )
+
+    return MERMAID_BLOCK_RE.sub(_replace, text), has_mermaid
+
+
 # ─────────────────────────────────────────────────────────────
 # CORE CONVERTER
 # ─────────────────────────────────────────────────────────────
@@ -541,8 +562,8 @@ def convert(
     subtitle: str | None = None,
     author: str | None = None,
     date: str | None = None,
-    lang: str = "vi",
-    theme: str = "default",
+    lang: str | None = None,
+    theme: str | None = None,
     extra_css: str | None = None,
     cover: bool = False,
     cover_logo: str | None = None,
@@ -551,6 +572,7 @@ def convert(
     watermark: str | None = None,
     engine: str = "auto",
     no_link_url: bool = False,
+    mermaid_theme: str = "default",
 ) -> None:
     src = Path(input_file)
     if not src.exists():
@@ -559,14 +581,14 @@ def convert(
 
     raw = src.read_text(encoding="utf-8")
 
-    # Front matter
+    # Front matter — CLI args win when given, else front matter, else default.
     fm, raw = parse_frontmatter(raw)
     title = title or fm.get("title") or src.stem
     subtitle = subtitle or fm.get("subtitle")
     author = author or fm.get("author")
     date = date or fm.get("date") or datetime.today().strftime("%B %d, %Y")
-    lang = lang or fm.get("lang", "vi")
-    theme = theme or fm.get("theme", "default")
+    lang = lang or fm.get("lang") or "vi"
+    theme = theme or fm.get("theme") or "default"
     watermark = watermark or fm.get("watermark")
     cover_logo = cover_logo or fm.get("logo")
     cover_category = cover_category or fm.get("category")
@@ -574,6 +596,22 @@ def convert(
         cover = True
     if fm.get("toc", "").lower() in ("true", "yes", "1"):
         toc = True
+
+    # Escape user-supplied metadata — template autoescape is off, and these land
+    # in HTML text, an HTML attribute, or a CSS string.
+    title = html_lib.escape(title)
+    subtitle = html_lib.escape(subtitle) if subtitle else subtitle
+    author = html_lib.escape(author) if author else author
+    date = html_lib.escape(date) if date else date
+    cover_category = html_lib.escape(cover_category) if cover_category else cover_category
+    cover_logo = html_lib.escape(cover_logo, quote=True) if cover_logo else cover_logo
+    if watermark:
+        # CSS string context (and inside <style>): neutralise quotes/backslash and
+        # any stray tag that could end the style element.
+        watermark = re.sub(r"[<>]", "", watermark).replace("\\", "\\\\").replace('"', '\\"')
+
+    # Mermaid preprocess (before Markdown conversion)
+    raw, has_mermaid = preprocess_mermaid_blocks(raw)
 
     # Markdown → HTML
     md = markdown.Markdown(
@@ -612,6 +650,40 @@ def convert(
         else:
             print(f"[warn] CSS file not found: {extra_css}", file=sys.stderr)
 
+    # Mermaid layout polish (applied for all themes)
+    mermaid_css = """
+.mermaid-block {
+    margin: 12pt 0;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    text-align: center;
+    width: 100%;
+    overflow: hidden;
+}
+.mermaid {
+    display: block;
+    width: 100%;
+    margin: 0 auto;
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+.mermaid svg {
+    display: block;
+    width: auto !important;
+    height: auto !important;
+    max-width: 70% !important;
+    max-height: 70vh !important;
+    margin: 0 auto;
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+.mermaid-error {
+    text-align: left;
+    white-space: pre-wrap;
+}
+"""
+    extra_css_content += "\n" + mermaid_css
+
     # Render HTML via Jinja2
     env = Environment(loader=BaseLoader())
     tmpl = env.from_string(HTML_TEMPLATE)
@@ -634,8 +706,8 @@ def convert(
 
     # Write PDF
     base_dir = str(src.resolve().parent)
-    _write_pdf(html, base_dir, output_file, engine)
-    print(f"[ok] {input_file} → {output_file}")
+    _write_pdf(html, base_dir, output_file, engine, has_mermaid, mermaid_theme)
+    print(f"[ok] {input_file} -> {output_file}")
 
 
 # ─────────────────────────────────────────────────────────────
@@ -647,7 +719,14 @@ def _write_pdf_weasyprint(html: str, base_dir: str, out: str) -> None:
     WP_HTML(string=html, base_url=base_dir).write_pdf(out)
 
 
-def _write_pdf_playwright(html: str, base_dir: str, out: str) -> None:
+def _write_pdf_playwright(
+    html: str,
+    base_dir: str,
+    out: str,
+    *,
+    has_mermaid: bool = False,
+    mermaid_theme: str = "default",
+) -> None:
     try:
         from playwright.sync_api import sync_playwright
     except ImportError as e:
@@ -662,16 +741,97 @@ def _write_pdf_playwright(html: str, base_dir: str, out: str) -> None:
             browser = p.chromium.launch()
             page = browser.new_page()
             page.goto(tmp.resolve().as_uri(), wait_until="networkidle")
+            if has_mermaid:
+                # Capture original Mermaid definitions before MermaidJS may auto-process nodes.
+                page.evaluate(
+                    """() => {
+                        const nodes = Array.from(document.querySelectorAll(".mermaid"));
+                        for (const el of nodes) {
+                            if (!el.dataset.mermaidSource || !el.dataset.mermaidSource.trim()) {
+                                el.dataset.mermaidSource = (el.textContent || "").trim();
+                            }
+                        }
+                    }"""
+                )
+                page.add_script_tag(
+                    url="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"
+                )
+                page.evaluate(
+                    """async (theme) => {
+                        if (!window.mermaid) return;
+                        mermaid.initialize({
+                            startOnLoad: false,
+                            securityLevel: "loose",
+                            theme: theme,
+                            themeVariables: {
+                                fontSize: "16px"
+                            },
+                            flowchart: { useMaxWidth: true, htmlLabels: true },
+                            sequence: { useMaxWidth: true },
+                            gantt: { useMaxWidth: true }
+                        });
+                        const nodes = Array.from(document.querySelectorAll(".mermaid"));
+                        for (let i = 0; i < nodes.length; i += 1) {
+                            const el = nodes[i];
+                            const id = `mermaid-diagram-${i}-${Date.now()}`;
+                            const graphDefinition = (el.dataset.mermaidSource || el.textContent || "").trim();
+                            if (!graphDefinition) continue;
+                            try {
+                                const { svg, bindFunctions } = await mermaid.render(id, graphDefinition);
+                                el.innerHTML = svg;
+                                const svgEl = el.querySelector("svg");
+                                if (svgEl) {
+                                    const widthAttr = parseFloat((svgEl.getAttribute("width") || "").replace("px", ""));
+                                    const heightAttr = parseFloat((svgEl.getAttribute("height") || "").replace("px", ""));
+                                    if (!svgEl.getAttribute("viewBox") && Number.isFinite(widthAttr) && Number.isFinite(heightAttr) && widthAttr > 0 && heightAttr > 0) {
+                                        svgEl.setAttribute("viewBox", `0 0 ${widthAttr} ${heightAttr}`);
+                                    }
+                                    svgEl.removeAttribute("width");
+                                    svgEl.removeAttribute("height");
+                                    svgEl.setAttribute("preserveAspectRatio", "xMidYMin meet");
+
+                                    const viewBox = svgEl.viewBox && svgEl.viewBox.baseVal ? svgEl.viewBox.baseVal : null;
+                                    const vbWidth = viewBox && viewBox.width ? viewBox.width : (Number.isFinite(widthAttr) ? widthAttr : 0);
+                                    const vbHeight = viewBox && viewBox.height ? viewBox.height : (Number.isFinite(heightAttr) ? heightAttr : 0);
+                                    const containerWidth = el.clientWidth || 900;
+                                    const maxPrintableHeight = 900; // px in Chromium print context
+                                    const maxWidth = containerWidth * 0.7;
+                                    const maxHeight = maxPrintableHeight * 0.7;
+
+                                    let targetWidth = maxWidth;
+                                    if (vbWidth > 0 && vbHeight > 0) {
+                                        const estimatedHeight = targetWidth * (vbHeight / vbWidth);
+                                        if (estimatedHeight > maxHeight) {
+                                            targetWidth = maxHeight * (vbWidth / vbHeight);
+                                        }
+                                    }
+
+                                    targetWidth = Math.min(maxWidth, Math.max(220, targetWidth));
+                                    svgEl.style.width = `${targetWidth}px`;
+                                    svgEl.style.height = "auto";
+                                    svgEl.style.maxWidth = "70%";
+                                    svgEl.style.maxHeight = "70vh";
+                                    svgEl.style.margin = "0 auto";
+                                }
+                                if (bindFunctions) bindFunctions(el);
+                            } catch (err) {
+                                el.innerHTML = `<pre class="mermaid-error">Mermaid render failed: ${String(err)}</pre>`;
+                            }
+                        }
+                    }""",
+                    mermaid_theme,
+                )
+                page.wait_for_timeout(450)
+
+            page.emulate_media(media="print")
+            # Margins come from the CSS @page rules (same as WeasyPrint). Passing a
+            # margin here too would stack on top of those and double the page margin.
             page.pdf(
                 path=out,
                 format="A4",
                 print_background=True,
-                margin={
-                    "top": "22mm",
-                    "right": "20mm",
-                    "bottom": "25mm",
-                    "left": "20mm",
-                },
+                prefer_css_page_size=True,
+                margin={"top": "0", "right": "0", "bottom": "0", "left": "0"},
             )
             browser.close()
     finally:
@@ -681,24 +841,71 @@ def _write_pdf_playwright(html: str, base_dir: str, out: str) -> None:
             pass
 
 
-def _write_pdf(html: str, base_dir: str, out: str, engine: str) -> None:
+def _write_pdf(
+    html: str,
+    base_dir: str,
+    out: str,
+    engine: str,
+    has_mermaid: bool = False,
+    mermaid_theme: str = "default",
+) -> None:
     engine = engine.lower()
 
     if engine == "weasyprint":
+        if has_mermaid:
+            print(
+                "[info] Mermaid detected. Using Playwright for Mermaid rendering.",
+                file=sys.stderr,
+            )
+            _write_pdf_playwright(
+                html,
+                base_dir,
+                out,
+                has_mermaid=True,
+                mermaid_theme=mermaid_theme,
+            )
+            return
         _write_pdf_weasyprint(html, base_dir, out)
         return
 
     if engine == "playwright":
-        _write_pdf_playwright(html, base_dir, out)
+        _write_pdf_playwright(
+            html,
+            base_dir,
+            out,
+            has_mermaid=has_mermaid,
+            mermaid_theme=mermaid_theme,
+        )
         return
 
-    # auto: try weasyprint first, fallback to playwright
+    # auto: prefer playwright when Mermaid is present
+    if has_mermaid:
+        print(
+            "[info] Mermaid detected. Auto engine selects Playwright.",
+            file=sys.stderr,
+        )
+        _write_pdf_playwright(
+            html,
+            base_dir,
+            out,
+            has_mermaid=True,
+            mermaid_theme=mermaid_theme,
+        )
+        return
+
+    # auto: try weasyprint first, then fallback to playwright
     try:
         _write_pdf_weasyprint(html, base_dir, out)
     except Exception as we:
         print(f"[warn] WeasyPrint failed ({we}), trying Playwright…", file=sys.stderr)
         try:
-            _write_pdf_playwright(html, base_dir, out)
+            _write_pdf_playwright(
+                html,
+                base_dir,
+                out,
+                has_mermaid=False,
+                mermaid_theme=mermaid_theme,
+            )
         except Exception as pe:
             print("[error] Both engines failed.", file=sys.stderr)
             print(f"  WeasyPrint : {we}", file=sys.stderr)
@@ -751,15 +958,15 @@ def build_parser() -> argparse.ArgumentParser:
     grp_meta.add_argument("--author", default=None, help="Author name")
     grp_meta.add_argument("--date", default=None, help="Date string")
     grp_meta.add_argument(
-        "--lang", default="vi", help="HTML lang attribute (default: vi)"
+        "--lang", default=None, help="HTML lang attribute (default: vi, or front-matter)"
     )
 
     grp_style = p.add_argument_group("styling")
     grp_style.add_argument(
         "--theme",
-        default="default",
-        choices=["default", "client-report", "minimal", "dark"],
-        help="Built-in theme or path to custom CSS",
+        default=None,
+        metavar="NAME|PATH",
+        help="Built-in theme (default, client-report, minimal, dark) or path to custom .css",
     )
     grp_style.add_argument(
         "--css",
@@ -769,6 +976,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     grp_style.add_argument(
         "--no-link-url", action="store_true", help="Don't print URLs after hyperlinks"
+    )
+    grp_style.add_argument(
+        "--mermaid-theme",
+        default="default",
+        choices=["default", "neutral", "dark", "forest", "base"],
+        help="Mermaid theme used when rendering diagrams (Playwright)",
     )
 
     grp_layout = p.add_argument_group("layout")
@@ -842,6 +1055,7 @@ def main() -> None:
         watermark=args.watermark,
         engine=args.engine,
         no_link_url=args.no_link_url,
+        mermaid_theme=args.mermaid_theme,
     )
 
 

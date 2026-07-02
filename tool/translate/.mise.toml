@@ -5,16 +5,11 @@ uv = "latest"
 _.python.venv = { path = ".venv", create = true }
 
 [tasks.setup]
-description = "Install dependencies from pyproject.toml (locked) + chromium for md2pdf"
+description = "Install dependencies from pyproject.toml (locked)"
 run = [
     "uv python install 3.14",
-    "uv sync",
-    "uv run playwright install chromium"
+    "uv sync"
 ]
-
-[tasks.md2pdf]
-description = "Convert Markdown to PDF"
-run = "python md2pdf.py"
 
 [tasks.run]
 description = "Universal runner for python scripts"

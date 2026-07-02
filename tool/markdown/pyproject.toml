@@ -1,0 +1,18 @@
+[project]
+name = "markdown-tools"
+version = "0.1.0"
+description = "Personal CLI tools: xlsx/docx/markdown/pdf conversion and Excel (de)serialization"
+requires-python = ">=3.14"
+dependencies = [
+    "openpyxl",
+    "mammoth",
+    "markdownify",
+    "markdown",
+    "jinja2",
+    "pygments",
+    "weasyprint",
+    "playwright",
+]
+
+[tool.uv]
+package = false

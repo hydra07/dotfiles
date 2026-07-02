@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.python-version
+
+# Rust
+target/
+
+# Tool output / scratch files
+restored_*.xlsx
+*.tmp
+
+
+bin/
