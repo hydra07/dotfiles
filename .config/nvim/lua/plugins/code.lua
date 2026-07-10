@@ -11,11 +11,12 @@ return {
 				bash = { "shfmt" },
 				fish = { "fish_indent" },
 				lua = { "stylua" },
-				-- stop_after_first = true: chỉ chạy formatter đầu tiên available
-				javascript = { "eslint_d", "prettierd" },
-				typescript = { "eslint_d", "prettierd" },
-				javascriptreact = { "eslint_d", "prettierd" },
-				typescriptreact = { "eslint_d", "prettierd" },
+				-- Prettier lo format; ESLint chỉ lint (đừng trộn 2 thằng vào format chain
+				-- vì chúng đánh nhau + eslint_d chạy đồng bộ rất chậm trên project TS lớn).
+				javascript = { "prettierd", "prettier", stop_after_first = true },
+				typescript = { "prettierd", "prettier", stop_after_first = true },
+				javascriptreact = { "prettierd", "prettier", stop_after_first = true },
+				typescriptreact = { "prettierd", "prettier", stop_after_first = true },
 				python = { "ruff_fix", "ruff_organize_imports", "ruff_format" },
 				go = { "gofumpt", "goimports-reviser", "golines" },
 				rust = { "rustfmt" },
