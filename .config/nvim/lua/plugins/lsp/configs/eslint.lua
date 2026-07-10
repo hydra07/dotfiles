@@ -22,7 +22,11 @@ return {
 		-- file -> import-x/no-unresolved báo giả '@/...'.
 		workingDirectory = { mode = "auto" },
 		format = false,
-		run = "onType",
+		-- onSave (không onType): typed-linting project này ~3.4s/lần, để onType thì
+		-- re-lint mỗi keystroke -> tồn đọng + bị format_after_save kích chạy 2 lần
+		-- -> lỗi "lì" 3-5s sau save. Type error tức thì đã có ts7 lo. eslint chỉ
+		-- cần chạy 1 lần lúc save cho các rule của nó (import-order/unused/sonarjs).
+		run = "onSave",
 		quiet = false,
 		onIgnoredFiles = "off",
 		problems = { shortenToSingleLine = false },

@@ -40,11 +40,37 @@ return {
 		},
 		keys = {
 			-- Natural line wrap navigation
-			{ "j", "v:count == 0 ? 'gj' : 'j'", desc = "Move Down (wrapped lines)", mode = { "n", "x" }, expr = true, silent = true },
-			{ "k", "v:count == 0 ? 'gk' : 'k'", desc = "Move Up (wrapped lines)", mode = { "n", "x" }, expr = true, silent = true },
+			{
+				"j",
+				"v:count == 0 ? 'gj' : 'j'",
+				desc = "Move Down (wrapped lines)",
+				mode = { "n", "x" },
+				expr = true,
+				silent = true,
+			},
+			{
+				"k",
+				"v:count == 0 ? 'gk' : 'k'",
+				desc = "Move Up (wrapped lines)",
+				mode = { "n", "x" },
+				expr = true,
+				silent = true,
+			},
 			-- Diagnostics navigation
-			{ "[d", function() vim.diagnostic.goto_prev() end, desc = "Prev Diagnostic" },
-			{ "]d", function() vim.diagnostic.goto_next() end, desc = "Next Diagnostic" },
+			{
+				"[d",
+				function()
+					vim.diagnostic.goto_prev()
+				end,
+				desc = "Prev Diagnostic",
+			},
+			{
+				"]d",
+				function()
+					vim.diagnostic.goto_next()
+				end,
+				desc = "Next Diagnostic",
+			},
 			-- Move block up/down in Visual Mode with J/K
 			{ "J", ":m '>+1<cr>gv=gv", desc = "Move Block Down", mode = "v" },
 			{ "K", ":m '<-2<cr>gv=gv", desc = "Move Block Up", mode = "v" },

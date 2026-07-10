@@ -38,10 +38,8 @@ function M.setup_diagnostics()
     update_in_insert = false,
     severity_sort = true,
   })
-
-  -- Apply border to LSP hover and signature help windows
-  vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = "single" })
-  vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = "single" })
+  -- Border của hover/signatureHelp lấy từ vim.o.winborder (set ở lsp/init.lua).
+  -- KHÔNG override vim.lsp.handlers + vim.lsp.with nữa: deprecated ở nvim 0.11+.
 end
 
 --- LspAttach / LspDetach autocmds

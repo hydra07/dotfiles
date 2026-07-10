@@ -20,7 +20,29 @@ return {
 		},
 		keys = {
 			-- ─── Core File Navigation ──────────────────────────────────
-			{ ";f", "<cmd>Telescope frecency workspace=CWD<cr>", desc = "Find Files (Frecency)" },
+			-- Picker chính: find_files thuần (fd + fzf-native) -> fuzzy mạnh, đoán
+			-- được, tức thì. frecency chuyển sang ;p (khi muốn ưu tiên file hay dùng).
+			{
+				";f",
+				function()
+					local make_entry = require("telescope.make_entry")
+					-- Ordinal = "tên_file  full/path" -> gõ tên file khớp ngay đầu chuỗi
+					-- nên FILE ĐÚNG TÊN xếp trên file trong folder cùng tên.
+					-- Vẫn gõ được path: thêm "/" (vd "cnt005/") để lọc theo FOLDER.
+					local opts = { path_display = { "filename_first" } }
+					local base = make_entry.gen_from_file(opts)
+					opts.entry_maker = function(line)
+						local entry = base(line)
+						if entry then
+							entry.ordinal = vim.fn.fnamemodify(line, ":t") .. " " .. entry.ordinal
+						end
+						return entry
+					end
+					require("telescope.builtin").find_files(opts)
+				end,
+				desc = "Find Files (ưu tiên tên file)",
+			},
+			{ ";p", "<cmd>Telescope frecency workspace=CWD<cr>", desc = "Find Files (Frecency)" },
 			{
 				";F",
 				function()
@@ -188,17 +210,14 @@ return {
 			local custom_previewer_maker = function(filepath, bufnr, opts)
 				opts = opts or {}
 				filepath = vim.fn.expand(filepath)
-				vim.loop.fs_stat(filepath, function(err, stat)
-					if not err and stat then
-						if stat.size > 102400 or filepath:match("%.min%.") or filepath:match("-lock%.") then
-							vim.schedule(function()
-								vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, { "File too large or minified to preview" })
-							end)
-							return
-						end
-					end
-					previewers.buffer_previewer_maker(filepath, bufnr, opts)
-				end)
+				-- fs_stat đồng bộ (vài µs) -> tránh gọi nvim API trong callback libuv
+				-- (fast-event) vốn gây preview chập chờn/lỗi.
+				local stat = vim.uv.fs_stat(filepath)
+				if stat and (stat.size > 262144 or filepath:match("%.min%.") or filepath:match("-lock%.")) then
+					vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, { "File too large or minified to preview" })
+					return
+				end
+				previewers.buffer_previewer_maker(filepath, bufnr, opts)
 			end
 
 			telescope.setup({
@@ -251,11 +270,13 @@ return {
 						"%.git/",
 					},
 					cache_picker = false,
-					debounce = 150,
+					-- KHÔNG debounce toàn cục: fuzzy (find_files/buffers) đã tức thì nhờ
+					-- fzf-native, debounce chỉ làm nó cảm giác lag. Debounce đặt riêng
+					-- cho live_grep (nơi spawn rg mỗi keystroke) bên dưới.
 					buffer_previewer_maker = custom_previewer_maker,
 					preview = {
-						filesize_limit = 0.1,
-						timeout = 150,
+						filesize_limit = 0.25,
+						timeout = 250,
 					},
 					mappings = {
 						i = {
@@ -289,6 +310,7 @@ return {
 						initial_mode = "normal",
 					},
 					live_grep = {
+						debounce = 100, -- gom keystroke -> đỡ spawn rg liên tục
 						additional_args = function()
 							return { "--hidden" }
 						end,
@@ -309,6 +331,7 @@ return {
 					},
 					live_grep_args = {
 						auto_quoting = true,
+						debounce = 100,
 					},
 					file_browser = {
 						hijack_netrw = true,

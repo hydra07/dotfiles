@@ -98,6 +98,8 @@ return {
 							preselect = true,
 							auto_insert = false,
 						},
+						-- Cap danh sách -> đỡ sort/vẽ khi ts7 trả về hàng nghìn item.
+						max_items = 200,
 					},
 					ghost_text = { enabled = true },
 					menu = {
@@ -193,6 +195,13 @@ return {
 						},
 						lsp = {
 							score_offset = 10,
+						},
+						buffer = {
+							-- Chỉ gợi ý từ buffer khi đã gõ >= 4 ký tự, cap số lượng và
+							-- không chặn menu -> giảm quét từ mỗi keystroke trên file to.
+							min_keyword_length = 4,
+							max_items = 6,
+							score_offset = -3,
 						},
 					},
 				},

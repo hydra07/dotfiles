@@ -19,13 +19,4 @@ return {
 	-- 		-- vim.g.markdown_kit_root = vim.fn.stdpath("data") .. "/lazy/markdown-kit.nvim/"
 	-- 	end,
 	-- },
-	{
-		"iamcco/markdown-preview.nvim",
-		cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
-		build = "cd app && bun i",
-		init = function()
-			vim.g.mkdp_filetypes = { "markdown" }
-		end,
-		ft = { "markdown" },
-	},
 }
