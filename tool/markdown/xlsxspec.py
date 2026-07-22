@@ -34,6 +34,16 @@ except ImportError:
     sys.exit("openpyxl not found: pip install openpyxl")
 
 
+# Force UTF-8 on stdout/stderr so Japanese sheet names / paths never crash the
+# tool on consoles with a legacy encoding (e.g. Windows cp1252). Self-sufficient
+# regardless of whether the caller exported PYTHONUTF8/PYTHONIOENCODING.
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="backslashreplace")
+    except (AttributeError, ValueError):
+        pass
+
+
 # ─── Escaping (only for md) ─────────────────────────────────────────────────────
 def _escape_md(text: str) -> str:
     text = text.replace("\\", "\\\\").replace("|", "\\|")

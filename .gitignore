@@ -16,3 +16,6 @@ target/
 
 # Logs / cache
 *.log
+
+# Secrets (MCP API keys)
+.config/mcp/.env

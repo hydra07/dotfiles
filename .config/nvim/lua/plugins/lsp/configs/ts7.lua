@@ -16,7 +16,10 @@
 local shared = require("plugins.lsp.configs._ts_shared")
 
 -- Prefer the native .exe (standalone, no node needed, spawns reliably on Windows),
--- fall back to exepath on PATH for other environments (WSL/Linux).
+-- fall back to exepath on PATH for other environments (WSL/Linux). The win32
+-- branch globs the mise node install tree, which costs ~20ms — only pay that
+-- on Windows, and only once the client is actually about to spawn (below),
+-- not on every Neovim startup regardless of whether a TS/JS file is opened.
 local function resolve_tsgo()
 	if vim.fn.has("win32") == 1 then
 		local pat = vim.fn.expand("~/AppData/Local/mise/installs/node/*/node_modules/@typescript/**/tsgo*.exe")
@@ -30,7 +33,18 @@ local function resolve_tsgo()
 end
 
 return {
-	cmd = { resolve_tsgo(), "--lsp", "--stdio" },
+	-- `cmd` as a function defers resolve_tsgo() to actual client-spawn time
+	-- (Neovim only calls this once a .ts/.js buffer triggers the client to
+	-- start) instead of running it eagerly when this config file is required
+	-- at Neovim startup. Must call vim.lsp.rpc.start itself here — returning
+	-- a function makes Neovim treat the return value as the RPC client
+	-- object, not a plain argv table.
+	cmd = function(dispatchers, config)
+		return require("vim.lsp.rpc").start({ resolve_tsgo(), "--lsp", "--stdio" }, dispatchers, {
+			cwd = config.cmd_cwd,
+			env = config.cmd_env,
+		})
+	end,
 	filetypes = {
 		"javascript",
 		"javascriptreact",
