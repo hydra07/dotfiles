@@ -1,4 +1,4 @@
--- LSP shared utilities: capabilities, diagnostic config, keymaps, attach logic
+-- LSP shared utilities: capabilities, diagnostic config, attach logic
 local M = {}
 
 --- Build capabilities (merges blink.cmp if loaded)
@@ -38,8 +38,8 @@ function M.setup_diagnostics()
     update_in_insert = false,
     severity_sort = true,
   })
-  -- Border của hover/signatureHelp lấy từ vim.o.winborder (set ở lsp/init.lua).
-  -- KHÔNG override vim.lsp.handlers + vim.lsp.with nữa: deprecated ở nvim 0.11+.
+  -- hover/signatureHelp border comes from vim.o.winborder (set in lsp/init.lua).
+  -- Don't override vim.lsp.handlers + vim.lsp.with — deprecated as of nvim 0.11+.
 end
 
 --- LspAttach / LspDetach autocmds
@@ -88,55 +88,6 @@ function M.setup_attach()
       pcall(vim.api.nvim_del_augroup_by_name, "LspDocHL_" .. args.buf)
     end,
   })
-end
-
---- LSP keymaps (diagnostics copy, inlay hints)
-function M.setup_keymaps()
-  local function fmt_diagnostic(d, bufnr)
-    local fname = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(bufnr), ":.")
-    local sev = vim.diagnostic.severity[d.severity] or "?"
-    local src = d.source and (" " .. d.source) or ""
-    local code = d.code and (" (" .. d.code .. ")") or ""
-    return string.format("%s:%d:%d [%s]%s%s %s",
-      fname, d.lnum + 1, d.col + 1, sev, src, code,
-      d.message:gsub("%s+", " "))
-  end
-
-  local function copy_diag(lines, label)
-    if not lines or #lines == 0 then
-      vim.notify("No diagnostics", vim.log.levels.INFO)
-      return
-    end
-    local text = table.concat(lines, "\n")
-    vim.fn.setreg("+", text)
-    vim.fn.setreg('"', text)
-    vim.notify("Copied " .. label, vim.log.levels.INFO, { title = "Diagnostics" })
-  end
-
-  vim.keymap.set("n", "<leader>ld", function()
-    vim.diagnostic.open_float(nil, { focus = true, scope = "line" })
-  end, { desc = "Diagnostics: Detail" })
-
-  vim.keymap.set("n", "<leader>ly", function()
-    local buf = vim.api.nvim_get_current_buf()
-    local line = vim.api.nvim_win_get_cursor(0)[1] - 1
-    local diags = vim.diagnostic.get(buf, { lnum = line })
-    copy_diag(vim.tbl_map(function(d) return fmt_diagnostic(d, buf) end, diags), "line diagnostics")
-  end, { desc = "Diagnostics: Copy line" })
-
-  vim.keymap.set("n", "<leader>lY", function()
-    local buf = vim.api.nvim_get_current_buf()
-    local diags = vim.diagnostic.get(buf)
-    table.sort(diags, function(a, b)
-      return a.lnum == b.lnum and a.col < b.col or a.lnum < b.lnum
-    end)
-    copy_diag(vim.tbl_map(function(d) return fmt_diagnostic(d, buf) end, diags), "buffer diagnostics")
-  end, { desc = "Diagnostics: Copy buffer" })
-
-  vim.keymap.set("n", ";h", function()
-    local bufnr = vim.api.nvim_get_current_buf()
-    vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr }), { bufnr = bufnr })
-  end, { desc = "LSP: Toggle inlay hints" })
 end
 
 return M

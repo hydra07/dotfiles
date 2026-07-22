@@ -1,4 +1,6 @@
 -- vtsls (TypeScript/JavaScript) Configuration
+local shared = require("plugins.lsp.configs._ts_shared")
+
 return {
 	filetypes = {
 		"javascript",
@@ -8,34 +10,22 @@ return {
 		"typescriptreact",
 		"typescript.tsx",
 	},
-	-- Ưu tiên tsconfig/jsconfig để bám đúng package có khai báo paths (@/) alias
-	-- trong monorepo, trước khi rơi về package.json/.git.
-	root_markers = {
-		"tsconfig.json",
-		"jsconfig.json",
-		"package.json",
-		".git",
-	},
+	-- Prefer tsconfig/jsconfig to anchor to the exact package declaring the (@/)
+	-- path alias in a monorepo, before falling back to package.json/.git.
+	root_markers = shared.root_markers,
 	settings = {
 		typescript = {
 			updateImportsOnFileMove = { enabled = "always" },
 			suggest = { completeFunctionCalls = true },
 			preferences = {
 				jsxAttributeCompletionStyle = "auto",
-				-- vtsls đọc key kiểu VS Code: "importModuleSpecifier" (KHÔNG phải
-				-- "importModuleSpecifierPreference" của giao thức tsserver thô).
-				-- "non-relative": luôn ưu tiên alias @/ theo paths trong tsconfig.
+				-- vtsls reads the VS Code-style key "importModuleSpecifier" (NOT
+				-- the raw tsserver protocol's "importModuleSpecifierPreference").
+				-- "non-relative": always prefer the @/ alias from tsconfig paths.
 				importModuleSpecifier = "non-relative",
 				importModuleSpecifierEnding = "minimal",
 			},
-			inlayHints = {
-				enumMemberValues = { enabled = true },
-				functionLikeReturnTypes = { enabled = true },
-				parameterNames = { enabled = "literals" },
-				parameterTypes = { enabled = false },
-				propertyDeclarationTypes = { enabled = true },
-				variableTypes = { enabled = false },
-			},
+			inlayHints = shared.inlay_hints,
 		},
 		javascript = {
 			updateImportsOnFileMove = { enabled = "always" },
@@ -45,14 +35,7 @@ return {
 				importModuleSpecifierPreference = "shortest",
 				importModuleSpecifierEnding = "minimal",
 			},
-			inlayHints = {
-				enumMemberValues = { enabled = true },
-				functionLikeReturnTypes = { enabled = true },
-				parameterNames = { enabled = "literals" },
-				parameterTypes = { enabled = false },
-				propertyDeclarationTypes = { enabled = true },
-				variableTypes = { enabled = false },
-			},
+			inlayHints = shared.inlay_hints,
 		},
 		vtsls = {
 			enableMoveToFileCodeAction = true,

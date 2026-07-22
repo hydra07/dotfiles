@@ -1,57 +1,11 @@
 return {
 	{
-		"catppuccin/nvim",
-		name = "catppuccin",
-		lazy = false,
-		priority = 1000,
-		opts = {
-			flavour = "mocha",
-			transparent_background = true,
-			term_colors = true,
-			custom_highlights = function(colors)
-				return {
-					LineNr = { fg = colors.overlay1 },
-					CursorLineNr = { fg = colors.lavender, bold = true },
-				}
-			end,
-			integrations = {
-				lazy = true,
-				blink_cmp = true,
-				mini = { enabled = true },
-				mason = true,
-				telescope = {
-					enabled = true,
-					styles = { "nvchad" },
-				},
-				lualine = true,
-				neotree = true,
-				dashboard = true,
-				native_lsp = {
-					enabled = true,
-					underlines = {
-						errors = { "undercurl" },
-						hints = { "undercurl" },
-						warnings = { "undercurl" },
-						information = { "undercurl" },
-					},
-				},
-				treesitter = true,
-				which_key = true,
-			},
-			compile = { enabled = true },
-		},
-		config = function(_, opts)
-			require("catppuccin").setup(opts)
-			vim.cmd.colorscheme("catppuccin")
-		end,
-	},
-	{
 		"j-hui/fidget.nvim",
 		event = "LspAttach",
 		opts = function()
 			return {
 				progress = {
-					-- 20Hz: đủ mượt mà terminal nào cũng render kịp (cao quá -> drop frame -> giật).
+					-- 20Hz: smooth enough that any terminal can keep up rendering (higher -> dropped frames -> stutter).
 					poll_rate = 20,
 					display = {
 						render_limit = 4,
@@ -73,7 +27,7 @@ return {
 					window = {
 						winblend = 0,
 						border = "rounded",
-						align = "top", -- top-right (fidget luôn neo mép phải)
+						align = "top", -- top-right (fidget always anchors to the right edge)
 						relative = "editor",
 						x_padding = 2,
 						y_padding = 1,
@@ -81,7 +35,7 @@ return {
 						max_height = 10,
 					},
 					view = {
-						stack_upwards = false, -- ở top: cái mới xuống dưới cái cũ
+						stack_upwards = false, -- anchored at top: newest goes below the older ones
 						icon_separator = "  ",
 						group_separator = "──────",
 						group_separator_hl = "NonText",
@@ -109,8 +63,8 @@ return {
 		config = function(_, opts)
 			require("fidget").setup(opts)
 
-			-- ── Đo thời gian load từng LSP và báo qua fidget khi xong ──────────
-			local starts = {} -- key = "client_id:token" -> hrtime bắt đầu
+			-- ── Time each LSP server's load and report via fidget when done ──────
+			local starts = {} -- key = "client_id:token" -> start hrtime
 			local function fmt(ms)
 				if ms < 1000 then
 					return string.format("%.0fms", ms)
@@ -139,7 +93,7 @@ return {
 							local ms = (vim.uv.hrtime() - t0) / 1e6
 							require("fidget").notify(client.name .. " ready", vim.log.levels.INFO, {
 								annote = "· " .. fmt(ms),
-								-- key ổn định theo client -> cập nhật cùng 1 dòng, không stack
+								-- stable key per client -> updates the same line instead of stacking
 								key = "lsp-load-" .. client.name,
 								ttl = 3,
 							})

@@ -1,7 +1,9 @@
 return {
 	{
 		"nvim-mini/mini.nvim",
-		event = { "BufReadPost", "InsertEnter" },
+		-- Not lazy: mini.icons' devicons mock (below) must be installed before any
+		-- other plugin — even a VeryLazy one — calls require("nvim-web-devicons").
+		lazy = false,
 		version = false,
 		config = function()
 			require("mini.pairs").setup()
@@ -31,6 +33,7 @@ return {
 				},
 			})
 			require("mini.icons").setup()
+			require("mini.icons").mock_nvim_web_devicons()
 		end,
 	},
 }

@@ -1,8 +1,8 @@
 -- Tailwind CSS LSP Configuration
 return {
-  -- Chỉ attach nơi thực sự có className. Bỏ "typescript"/"javascript" thuần
-  -- (mặc định lspconfig có) để file .ts thường chạy thuần ts7, không kéo theo
-  -- tailwind (boot 3-4s + thêm provider chậm vào blink -> trễ completion).
+  -- Only attach where className actually appears. Plain "typescript"/"javascript"
+  -- (lspconfig's default) are omitted so a bare .ts file runs on ts7 alone,
+  -- without dragging in tailwindcss (3-4s boot + a slower blink provider -> laggy completion).
   filetypes = {
     "html",
     "css",

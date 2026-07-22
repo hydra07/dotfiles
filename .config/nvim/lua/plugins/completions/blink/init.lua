@@ -6,7 +6,6 @@ return {
 		dependencies = {
 			"rafamadriz/friendly-snippets",
 			"xzbdmw/colorful-menu.nvim",
-			"fang2hou/blink-copilot",
 		},
 		opts = function()
 			local function accept_index(index)
@@ -15,45 +14,9 @@ return {
 				end
 			end
 
-			-- ── Kind icons (Nerd Font) ──────────────────────────────────
-			local kind_icons = {
-				Text = "󰉿",
-				Method = "󰊕",
-				Function = "󰊕",
-				Constructor = "",
-				Field = "󰜢",
-				Variable = "󰀫",
-				Class = "󰠱",
-				Interface = "",
-				Module = "󰏗",
-				Property = "󰜢",
-				Unit = "",
-				Value = "󰎠",
-				Enum = "",
-				Keyword = "󰌋",
-				Snippet = "",
-				Color = "󰏘",
-				File = "󰈙",
-				Reference = "",
-				Folder = "󰉋",
-				EnumMember = "",
-				Constant = "󰏿",
-				Struct = "󰙅",
-				Event = "",
-				Operator = "󰆕",
-				TypeParameter = "󰅲",
-				Copilot = "",
-			}
-
-			-- ── Source labels ────────────────────────────────────────────
-			local source_labels = {
-				lsp = "[LSP]",
-				copilot = "[AI]",
-				path = "[Path]",
-				snippets = "[Snip]",
-				buffer = "[Buf]",
-				cmdline = "[Cmd]",
-			}
+			local icons = require("plugins.completions.blink.icons")
+			local kind_icons = icons.kind_icons
+			local source_labels = icons.source_labels
 
 			return {
 				keymap = {
@@ -98,7 +61,7 @@ return {
 							preselect = true,
 							auto_insert = false,
 						},
-						-- Cap danh sách -> đỡ sort/vẽ khi ts7 trả về hàng nghìn item.
+						-- Cap the list -> less sorting/rendering work when ts7 returns thousands of items.
 						max_items = 200,
 					},
 					ghost_text = { enabled = true },
@@ -184,21 +147,14 @@ return {
 					implementation = "prefer_rust_with_warning",
 				},
 				sources = {
-					default = { "lsp", "copilot", "path", "snippets", "buffer" },
+					default = { "lsp", "path", "snippets", "buffer" },
 					providers = {
-						copilot = {
-							name = "copilot",
-							module = "blink-copilot",
-							score_offset = 0,
-							async = true,
-							min_keyword_length = 1,
-						},
 						lsp = {
 							score_offset = 10,
 						},
 						buffer = {
-							-- Chỉ gợi ý từ buffer khi đã gõ >= 4 ký tự, cap số lượng và
-							-- không chặn menu -> giảm quét từ mỗi keystroke trên file to.
+							-- Only suggest from buffer after typing >= 4 chars, and cap the
+							-- count without blocking the menu -> less scanning per keystroke on big files.
 							min_keyword_length = 4,
 							max_items = 6,
 							score_offset = -3,
@@ -246,34 +202,5 @@ return {
 				client.capabilities = vim.tbl_deep_extend("force", client.capabilities, capabilities)
 			end
 		end,
-	},
-	{
-		"zbirenbaum/copilot.lua",
-		cmd = "Copilot",
-		event = "InsertEnter",
-		keys = {
-			{
-				"<leader>ct",
-				function()
-					local client = require("copilot.client")
-					if client.is_disabled() then
-						vim.cmd("Copilot enable")
-						vim.notify("Copilot Enabled", vim.log.levels.INFO, { title = "Copilot" })
-					else
-						vim.cmd("Copilot disable")
-						vim.notify("Copilot Disabled", vim.log.levels.WARN, { title = "Copilot" })
-					end
-				end,
-				desc = "Copilot: Toggle On/Off",
-			},
-		},
-		opts = {
-			suggestion = { enabled = false },
-			panel = { enabled = false },
-			filetypes = {
-				markdown = true,
-				help = true,
-			},
-		},
 	},
 }

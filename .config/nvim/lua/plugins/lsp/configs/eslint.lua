@@ -1,6 +1,6 @@
 -- ESLint Configuration
--- Vai trò: chỉ lint + code action (fix on demand). KHÔNG format trên save
--- (Prettier/conform lo format). Tránh xung đột & lag khi lưu file TS.
+-- Role: lint + code action (fix on demand) only. Does NOT format on save
+-- (Prettier/conform handles that) — avoids conflicts and lag when saving TS files.
 return {
 	root_markers = {
 		".eslintrc",
@@ -15,25 +15,27 @@ return {
 		"eslint.config.ts",
 	},
 	settings = {
-		-- Key ĐÚNG là "workingDirectory" (số ít), object { mode = "auto" }.
-		-- "auto" = dùng workspace folder (root) làm cwd -> resolver đọc đúng
-		-- ./tsconfig.json ở root -> @/ resolve OK (khớp behavior CLI/VSCode).
-		-- Viết sai thành "workingDirectories" thì server bỏ qua -> cwd = thư mục
-		-- file -> import-x/no-unresolved báo giả '@/...'.
+		-- Correct key is "workingDirectory" (singular), object { mode = "auto" }.
+		-- "auto" = use the workspace folder (root) as cwd -> resolver reads the
+		-- root ./tsconfig.json correctly -> @/ resolves OK (matches CLI/VSCode behavior).
+		-- Misspelling it "workingDirectories" makes the server ignore it -> cwd falls
+		-- back to the file's directory -> import-x/no-unresolved false-flags '@/...'.
 		workingDirectory = { mode = "auto" },
 		format = false,
-		-- onSave (không onType): typed-linting project này ~3.4s/lần, để onType thì
-		-- re-lint mỗi keystroke -> tồn đọng + bị format_after_save kích chạy 2 lần
-		-- -> lỗi "lì" 3-5s sau save. Type error tức thì đã có ts7 lo. eslint chỉ
-		-- cần chạy 1 lần lúc save cho các rule của nó (import-order/unused/sonarjs).
+		-- onSave (not onType): typed-linting on this project takes ~3.4s per run, so
+		-- onType would re-lint every keystroke -> backlog, plus format_after_save
+		-- triggering it twice -> a stubborn 3-5s stall after saving. Instant type
+		-- errors are already covered by ts7. ESLint only needs one run on save for
+		-- its own rules (import-order/unused/sonarjs).
 		run = "onSave",
 		quiet = false,
 		onIgnoredFiles = "off",
 		problems = { shortenToSingleLine = false },
 	},
-	-- Ghi đè before_init của lspconfig: nó set workspaceFolder.uri = đường dẫn THÔ
-	-- ("D:/dev/..."), khiến vscode-eslint không khớp document uri (file:///d:/...)
-	-- -> mode "auto" rơi về thư mục file -> resolver mù @/. Set URI đúng chuẩn.
+	-- Override lspconfig's before_init: it sets workspaceFolder.uri to a raw path
+	-- ("D:/dev/..."), which vscode-eslint fails to match against the document uri
+	-- (file:///d:/...) -> mode "auto" falls back to the file's directory -> resolver
+	-- can't see @/. Set the URI properly instead.
 	before_init = function(_, config)
 		local root_dir = config.root_dir
 		if root_dir then

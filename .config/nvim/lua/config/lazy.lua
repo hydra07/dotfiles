@@ -11,7 +11,12 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 require("lazy").setup({
-	spec = { { import = "plugins" } },
+	spec = {
+		{ import = "plugins" },
+		{ import = "plugins.completions" },
+		{ import = "plugins.editor" },
+		{ import = "plugins.ui" },
+	},
 	defaults = {
 		lazy = true,
 		version = false,

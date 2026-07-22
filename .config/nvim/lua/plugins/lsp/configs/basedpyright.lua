@@ -5,9 +5,9 @@ local function usable(p)
 	end
 end
 
--- Chọn interpreter python theo thứ tự: .venv project > mise (theo project) > system.
--- PHẢI set trước khi server initialize, nếu không basedpyright tự dò và hay vớ nhầm
--- bản không tồn tại (vd python3.14t.exe free-threaded) -> crash exit 103.
+-- Pick the python interpreter in order: project .venv > mise (per-project) > system.
+-- MUST be set before the server initializes, otherwise basedpyright auto-detects
+-- and often picks a nonexistent build (e.g. python3.14t.exe free-threaded) -> exit 103 crash.
 local function resolve_python(root)
 	root = root or vim.fn.getcwd()
 	local p = usable(root .. "/.venv/Scripts/python.exe") or usable(root .. "/.venv/bin/python")
@@ -29,8 +29,8 @@ return {
 		on_dir(root or vim.fn.getcwd())
 	end,
 
-	-- before_init: chạy TRƯỚC initialize -> pythonPath sẵn sàng khi basedpyright
-	-- hỏi workspace/configuration lúc probe interpreter.
+	-- before_init runs BEFORE initialize -> pythonPath is ready when basedpyright
+	-- asks for workspace/configuration while probing the interpreter.
 	before_init = function(_, config)
 		local root = config.root_dir or vim.fn.getcwd()
 		local python_path = resolve_python(root)

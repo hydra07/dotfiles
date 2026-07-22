@@ -1,19 +1,22 @@
--- ts7 — TypeScript 7 native (Go) làm LSP RIÊNG của editor.
+-- ts7 — TypeScript 7 native (Go) as the editor's OWN, separate LSP.
 --
--- Mô hình (giống VSCode): editor có TS engine riêng, ĐỘC LẬP với `typescript`
--- dependency của project. Ở đây engine là TS7 native global; project vẫn có thể
--- pin typescript@6 cho build/CI. Thứ duy nhất đọc từ project là tsconfig.json
--- (để hiểu compilerOptions + paths @/), còn engine chạy là TS7 của editor.
+-- Model (like VSCode): the editor has its own TS engine, INDEPENDENT of the
+-- project's `typescript` dependency. Here the engine is the global native TS7;
+-- the project can still pin typescript@6 for build/CI. The only thing read
+-- from the project is tsconfig.json (for compilerOptions + @/ paths) — the
+-- engine that actually runs is the editor's own TS7.
 --
--- Binary: cài global `npm i -g @typescript/native-preview` (cung cấp `tsgo`).
--- Cùng 1 Go binary với `tsc` của typescript@7 stable, chỉ khác tên bin.
--- Bản thân binary tự nói LSP qua `--lsp --stdio` -> không cần viết host riêng.
+-- Binary: install globally with `npm i -g @typescript/native-preview` (provides
+-- `tsgo`). Same Go binary as typescript@7 stable's `tsc`, just a different bin name.
+-- The binary speaks LSP itself via `--lsp --stdio` -> no need for a custom host.
 --
--- Tự chứa hoàn toàn (không mượn base lspconfig) để KHÔNG bao giờ rơi vào
--- node_modules/.bin của project -> luôn dùng TS7 của editor.
+-- Fully self-contained (doesn't reuse lspconfig's base) so it NEVER falls back
+-- to the project's node_modules/.bin -> always uses the editor's own TS7.
 
--- Ưu tiên native .exe (standalone, không cần node, spawn ổn định trên Windows),
--- fallback về exepath trên PATH cho môi trường khác (WSL/Linux).
+local shared = require("plugins.lsp.configs._ts_shared")
+
+-- Prefer the native .exe (standalone, no node needed, spawns reliably on Windows),
+-- fall back to exepath on PATH for other environments (WSL/Linux).
 local function resolve_tsgo()
 	if vim.fn.has("win32") == 1 then
 		local pat = vim.fn.expand("~/AppData/Local/mise/installs/node/*/node_modules/@typescript/**/tsgo*.exe")
@@ -34,22 +37,15 @@ return {
 		"typescript",
 		"typescriptreact",
 	},
-	-- Neo root vào tsconfig/jsconfig (chỗ có paths @/), rồi package.json/.git.
-	root_markers = { "tsconfig.json", "jsconfig.json", "package.json", ".git" },
+	-- Anchor root to tsconfig/jsconfig (where @/ paths live), then package.json/.git.
+	root_markers = shared.root_markers,
 	settings = {
 		typescript = {
 			preferences = {
 				importModuleSpecifier = "non-relative",
 				importModuleSpecifierEnding = "minimal",
 			},
-			inlayHints = {
-				enumMemberValues = { enabled = true },
-				functionLikeReturnTypes = { enabled = true },
-				parameterNames = { enabled = "literals" },
-				parameterTypes = { enabled = false },
-				propertyDeclarationTypes = { enabled = true },
-				variableTypes = { enabled = false },
-			},
+			inlayHints = shared.inlay_hints,
 		},
 		javascript = {
 			preferences = {

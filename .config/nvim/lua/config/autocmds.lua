@@ -4,7 +4,7 @@ end
 vim.api.nvim_create_autocmd("TextYankPost", {
 	group = augroup("highlight_yank"),
 	callback = function()
-		-- vim.hl (0.11+); fallback vim.highlight cho nvim cũ
+		-- vim.hl (0.11+); fall back to vim.highlight on older nvim
 		(vim.hl or vim.highlight).on_yank({
 			higroup = "IncSearch",
 			timeout = 150,
@@ -12,12 +12,11 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	end,
 })
 
--- `nvim` or `nvim .` → Telescope file_browser
+-- `nvim <dir>` -> open Telescope file_browser at that directory
 vim.api.nvim_create_autocmd("VimEnter", {
 	group = augroup("explorer_on_start"),
 	callback = function()
 		local arg = vim.fn.argv(0)
-		local is_no_args = vim.fn.argc() == 0
 		local is_directory = vim.fn.argc() == 1 and vim.fn.isdirectory(arg) == 1
 
 		if is_directory then
@@ -28,7 +27,10 @@ vim.api.nvim_create_autocmd("VimEnter", {
 				if vim.api.nvim_buf_is_valid(buf) then
 					pcall(vim.api.nvim_buf_delete, buf, { force = true })
 				end
-				require("telescope").extensions.file_browser.file_browser({ path = dir })
+				local ok, telescope = pcall(require, "telescope")
+				if ok then
+					telescope.extensions.file_browser.file_browser({ path = dir })
+				end
 			end, 30)
 		end
 	end,

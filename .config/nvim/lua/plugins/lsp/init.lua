@@ -1,14 +1,5 @@
--- LSP entry point
--- To add a new language: create a new file in configs/, require it in servers.lua
 local utils = require("plugins.lsp.utils")
 local servers = require("plugins.lsp.servers")
-
--- ── Tool resolution PATH (LSP servers + conform formatters cùng dùng) ──────
--- Thứ tự ưu tiên: mise shims (nếu có) > mason/bin > PATH hệ thống sẵn có.
---   • mise shims: entry-point resolve version theo cwd lúc gọi -> node/bun/pnpm
---     đúng bản mà từng project pin, kể cả khi nhảy giữa nhiều project trong 1
---     phiên nvim (nơi `mise activate` của shell không áp được). Đây là cách mise
---     khuyến nghị cho editor. Không có mise -> giữ nguyên hành vi cũ (mason + PATH).
 local is_win = vim.uv.os_uname().sysname == "Windows_NT"
 local path_sep = is_win and ";" or ":"
 
@@ -30,12 +21,11 @@ end
 local path_parts = { vim.fn.stdpath("data") .. "/mason/bin" }
 local shims = mise_shims_dir()
 if shims then
-	table.insert(path_parts, 1, shims) -- mise ưu tiên -> đứng đầu
+	table.insert(path_parts, 1, shims) -- mise takes priority -> goes first
 end
 vim.env.PATH = table.concat(path_parts, path_sep) .. path_sep .. vim.env.PATH
 
 return {
-	-- ── Mason: UI only ────────────────────────────────────────────────────
 	{
 		"williamboman/mason.nvim",
 		cmd = "Mason",
@@ -50,8 +40,6 @@ return {
 			},
 		},
 	},
-
-	-- ── Tool installer: manual only ───────────────────────────────────────
 	{
 		"WhoIsSethDaniel/mason-tool-installer.nvim",
 		cmd = { "MasonToolsInstall", "MasonToolsUpdate", "MasonToolsClean" },
@@ -68,8 +56,6 @@ return {
 			run_on_start = false,
 		},
 	},
-
-	-- ── Mason-lspconfig: server installation ──────────────────────────────
 	{
 		"williamboman/mason-lspconfig.nvim",
 		event = { "BufReadPre", "BufNewFile" },
@@ -88,8 +74,6 @@ return {
 			automatic_enable = false,
 		},
 	},
-
-	-- ── Lazydev: optimizes Lua LSP for Neovim config ──────────────────────
 	{
 		"folke/lazydev.nvim",
 		ft = "lua",
@@ -100,17 +84,11 @@ return {
 			},
 		},
 	},
-
-	-- ── Core LSP ──────────────────────────────────────────────────────────
 	{
 		"neovim/nvim-lspconfig",
 		event = { "BufReadPre", "BufNewFile" },
 		cmd = { "LspInfo", "LspStart", "LspStop", "LspRestart", "LspInstall" },
 		config = function()
-			-- KHÔNG require("lspconfig"): module đó deprecated ở bản mới.
-			-- Ta dùng thẳng vim.lsp.config/enable; các lsp/<name>.lua của
-			-- nvim-lspconfig vẫn tự nạp từ runtimepath khi reference tên server.
-			-- 1. Shared config for all servers
 			vim.lsp.config("*", {
 				capabilities = utils.capabilities(),
 				root_markers = {
@@ -122,23 +100,22 @@ return {
 					"setup.py",
 				},
 			})
-
-			-- 2. Register settings and enable all servers defined in servers.lua
 			for name, config in pairs(servers) do
-				vim.lsp.config(name, config)
-				vim.lsp.enable(name)
+				-- Isolate per-server registration: a bug in one server's config file
+				-- shouldn't stop the others from being registered.
+				local ok, err = pcall(function()
+					vim.lsp.config(name, config)
+					vim.lsp.enable(name)
+				end)
+				if not ok then
+					vim.notify(("LSP server '%s' failed to register: %s"):format(name, err), vim.log.levels.ERROR)
+				end
 			end
-
-			-- 3. UI
 			if vim.o.winborder == "" then
 				vim.o.winborder = "single"
 			end
-
-			-- 4. Setup diagnostics, attach logic, keymaps
 			utils.setup_diagnostics()
 			utils.setup_attach()
-			utils.setup_keymaps()
 		end,
 	},
 }
-

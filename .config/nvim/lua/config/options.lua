@@ -53,17 +53,13 @@ opt.title = true
 -- opt.cindent = true
 opt.termguicolors = true
 
-if sysname == "Windows_NT" then
-	require("config.window")
-elseif sysname == "Darwin" then
-	require("config.macos")
-else
-	require("config.linux")
-end
+local platform_module = ({
+	Windows_NT = "config.window",
+	Darwin = "config.macos",
+})[sysname] or "config.linux"
 
--- Resize windows with Alt + Vim navigation keys (h, j, k, l)
-vim.keymap.set("n", "<M-h>", "<cmd>vertical resize -2<cr>", { desc = "Decrease Window Width" })
-vim.keymap.set("n", "<M-j>", "<cmd>resize -2<cr>", { desc = "Decrease Window Height" })
-vim.keymap.set("n", "<M-k>", "<cmd>resize +2<cr>", { desc = "Increase Window Height" })
-vim.keymap.set("n", "<M-l>", "<cmd>vertical resize +2<cr>", { desc = "Increase Window Width" })
+local ok, err = pcall(require, platform_module)
+if not ok then
+	vim.notify(("Failed to load %s: %s"):format(platform_module, err), vim.log.levels.ERROR)
+end
 

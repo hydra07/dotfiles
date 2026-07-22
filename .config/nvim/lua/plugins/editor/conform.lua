@@ -1,8 +1,28 @@
+local keymaps = require("config.keymaps")
+
+local function format_buffer()
+	require("conform").format({ async = true, lsp_format = "fallback" }, function(err, did_edit)
+		if err then
+			vim.notify("Format failed: " .. err, vim.log.levels.ERROR, { title = "Conform" })
+			return
+		end
+		if did_edit then
+			vim.notify("Formatted buffer", vim.log.levels.INFO, { title = "Conform" })
+		else
+			vim.notify("No formatting changes", vim.log.levels.INFO, { title = "Conform" })
+		end
+	end)
+end
+
 return {
 	{
 		"stevearc/conform.nvim",
 		event = { "BufWritePre" },
 		cmd = { "ConformInfo" },
+		keys = {
+			keymaps.bind("format_buffer", format_buffer),
+			keymaps.bind("conform_info", "<cmd>ConformInfo<cr>"),
+		},
 		opts = {
 			notify_on_error = true,
 			notify_no_formatters = true,
@@ -11,8 +31,8 @@ return {
 				bash = { "shfmt" },
 				fish = { "fish_indent" },
 				lua = { "stylua" },
-				-- Prettier lo format; ESLint chỉ lint (đừng trộn 2 thằng vào format chain
-				-- vì chúng đánh nhau + eslint_d chạy đồng bộ rất chậm trên project TS lớn).
+				-- Prettier formats; ESLint only lints (don't mix both into the format
+				-- chain — they conflict, and eslint_d runs synchronously and slowly on large TS projects).
 				javascript = { "prettierd", "prettier", stop_after_first = true },
 				typescript = { "prettierd", "prettier", stop_after_first = true },
 				javascriptreact = { "prettierd", "prettier", stop_after_first = true },
@@ -48,20 +68,5 @@ return {
 				},
 			},
 		},
-	},
-	{
-		"jmbuhr/otter.nvim",
-		dependencies = {
-			"nvim-treesitter/nvim-treesitter",
-		},
-		config = function()
-			vim.api.nvim_create_autocmd({ "FileType" }, {
-				pattern = { "toml" },
-				group = vim.api.nvim_create_augroup("EmbedToml", {}),
-				callback = function()
-					require("otter").activate()
-				end,
-			})
-		end,
 	},
 }
