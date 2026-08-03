@@ -249,6 +249,20 @@ local registry = {
 	-- Terminal exit-to-normal-mode — buffer-local, set on TermOpen
 	terminal_exit_escape = { "<Esc><Esc>", "Exit Terminal Mode", "t" },
 	terminal_exit_jk = { "jk", "Exit Terminal Mode", "t" },
+
+	-- AI assistants, grouped under <leader>a: Claude Code (deep IDE-protocol
+	-- integration via claudecode.nvim) and Antigravity CLI (agy, plain
+	-- terminal — no equivalent editor-protocol plugin exists for it yet).
+	claude_toggle = { "<leader>ac", "Claude: Toggle" },
+	claude_focus = { "<leader>af", "Claude: Focus" },
+	claude_resume = { "<leader>ar", "Claude: Resume Session" },
+	claude_continue = { "<leader>aC", "Claude: Continue Session" },
+	claude_select_model = { "<leader>am", "Claude: Select Model" },
+	claude_add_buffer = { "<leader>ab", "Claude: Add Buffer to Context" },
+	claude_send_selection = { "<leader>as", "Claude: Send Selection", "v" },
+	claude_diff_accept = { "<leader>aa", "Claude: Accept Diff" },
+	claude_diff_deny = { "<leader>ad", "Claude: Reject Diff" },
+	agy_toggle = { "<leader>ag", "Antigravity: Toggle Terminal" },
 }
 for i = 1, 9 do
 	registry["terminal_" .. i] = { "<leader>t" .. i, "Toggle Terminal " .. i, { "n", "t" } }

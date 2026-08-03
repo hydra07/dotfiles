@@ -1,4 +1,5 @@
 -- LSP shared utilities: capabilities, diagnostic config, attach logic
+local icons = require("config.icons")
 local M = {}
 
 --- Build capabilities (merges blink.cmp if loaded)
@@ -28,10 +29,10 @@ function M.setup_diagnostics()
     },
     signs = {
       text = {
-        [vim.diagnostic.severity.ERROR] = " ",
-        [vim.diagnostic.severity.WARN] = " ",
-        [vim.diagnostic.severity.HINT] = "󰌵 ",
-        [vim.diagnostic.severity.INFO] = " ",
+        [vim.diagnostic.severity.ERROR] = icons.diagnostics.error,
+        [vim.diagnostic.severity.WARN] = icons.diagnostics.warn,
+        [vim.diagnostic.severity.HINT] = icons.diagnostics.hint,
+        [vim.diagnostic.severity.INFO] = icons.diagnostics.info,
       },
     },
     underline = true,

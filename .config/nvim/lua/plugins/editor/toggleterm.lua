@@ -4,7 +4,7 @@ return {
 	{
 		"akinsho/toggleterm.nvim",
 		version = "*",
-		cmd = { "ToggleTerm", "TermSelect", "ToggleTermToggleAll" },
+		cmd = { "ToggleTerm", "TermSelect", "ToggleTermToggleAll", "TermExec" },
 		keys = (function()
 			local keys = {
 				keymaps.bind("toggle_terminal", "<cmd>ToggleTerm<cr>"),
@@ -13,6 +13,9 @@ return {
 				keymaps.bind("terminal_vertical", "<cmd>ToggleTerm direction=vertical<cr>"),
 				keymaps.bind("terminal_select", "<cmd>TermSelect<cr>"),
 				keymaps.bind("terminal_toggle_all", "<cmd>ToggleTermToggleAll<cr>"),
+				-- Dedicated terminal #99 always runs `agy` (Antigravity CLI) directly,
+				-- toggled like any other numbered terminal (open if closed, focus if open).
+				keymaps.bind("agy_toggle", [[<cmd>99TermExec cmd="agy" direction=float<cr>]]),
 			}
 			for i = 1, 9 do
 				keys[#keys + 1] = keymaps.bind("terminal_" .. i, string.format("<cmd>%dToggleTerm<cr>", i))

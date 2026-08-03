@@ -34,6 +34,7 @@ return {
 				{ "<leader>b", group = "Buffer" },
 				{ "<leader>v", group = "Neovide" },
 				{ "<leader>t", group = "Terminal" },
+				{ "<leader>a", group = "AI Assistants" },
 				{ ";", group = "Telescope", icon = "" },
 				{ "g", group = "Go to / LSP Navigate" },
 			},

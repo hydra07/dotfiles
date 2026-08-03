@@ -1,3 +1,5 @@
+local icons = require("config.icons")
+
 return {
 	{
 		"nvim-lualine/lualine.nvim",
@@ -6,13 +8,8 @@ return {
 		config = function()
 			local C = {
 				blue = "#89b4fa",
-				green = "#a6e3a1",
-				peach = "#fab387",
-				red = "#f38ba8",
 				mauve = "#cba6f7",
 				subtext = "#a6adc8",
-				bg = "#1e1e2e",
-				surface0 = "#313244",
 			}
 			local _cache = { lsp = "", fmt = "" }
 			local function refresh_cache()
@@ -28,8 +25,8 @@ return {
 						fmts[#fmts + 1] = f.name
 					end
 				end
-				_cache.lsp = #clients > 0 and (" " .. table.concat(clients, "·")) or ""
-				_cache.fmt = #fmts > 0 and ("󰉼 " .. table.concat(fmts, "·")) or ""
+				_cache.lsp = #clients > 0 and (icons.lsp_client .. table.concat(clients, "·")) or ""
+				_cache.fmt = #fmts > 0 and (icons.formatter .. table.concat(fmts, "·")) or ""
 			end
 			local function tools_segment()
 				local parts = {}
@@ -57,11 +54,11 @@ return {
 					local is_open = term:is_open()
 					local state = ""
 					if is_current then
-						state = "*"
+						state = icons.terminal.current
 					elseif is_open then
-						state = "⚡"
+						state = icons.terminal.open
 					else
-						state = "💤"
+						state = icons.terminal.hidden
 					end
 					table.insert(parts, string.format("%d%s", term.id, state))
 				end
@@ -88,8 +85,11 @@ return {
 			lualine.setup({
 				options = {
 					theme = "auto",
-					section_separators = { left = "", right = "" },
-					component_separators = { left = "", right = "" },
+					-- Hard/sharp powerline glyphs U+E0B0-U+E0B3 (byte-escaped: PUA codepoints
+					-- don't survive as literal source characters reliably) — the solid/thin
+					-- arrow pair, NOT the rounded U+E0B4/U+E0B6 variants.
+					section_separators = { left = "\238\130\176", right = "\238\130\178" },
+					component_separators = { left = "\238\130\177", right = "\238\130\179" },
 					globalstatus = true,
 					refresh = { statusline = 500 },
 					always_divide_middle = true,
@@ -100,9 +100,9 @@ return {
 						{ "mode" },
 					},
 					lualine_b = {
-						{ "branch", icon = "" },
+						{ "branch", icon = icons.git_branch },
 						"diff",
-						{ "diagnostics", symbols = { error = " ", warn = " ", info = " ", hint = "󰌵 " } },
+						{ "diagnostics", symbols = icons.diagnostics },
 					},
 					lualine_c = {
 						{ "filetype", icon_only = true, separator = "", padding = { left = 1, right = 0 } },
