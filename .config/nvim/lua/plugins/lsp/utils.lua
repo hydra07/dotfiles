@@ -73,7 +73,16 @@ function M.setup_attach()
         and client.name ~= "vtsls"
         and client.name ~= "eslint"
       then
-        vim.lsp.codelens.enable(true, { bufnr = args.buf })
+        local bufnr = args.buf
+        local cl_group = vim.api.nvim_create_augroup("LspCodeLens_" .. bufnr, { clear = true })
+        vim.api.nvim_create_autocmd({ "BufEnter", "CursorHold", "InsertLeave" }, {
+          buffer = bufnr,
+          group = cl_group,
+          callback = function()
+            vim.lsp.codelens.refresh({ bufnr = bufnr })
+          end,
+        })
+        vim.lsp.codelens.refresh({ bufnr = bufnr })
       end
 
       if client:supports_method("textDocument/inlayHint") then
@@ -87,6 +96,7 @@ function M.setup_attach()
     callback = function(args)
       vim.lsp.buf.clear_references()
       pcall(vim.api.nvim_del_augroup_by_name, "LspDocHL_" .. args.buf)
+      pcall(vim.api.nvim_del_augroup_by_name, "LspCodeLens_" .. args.buf)
     end,
   })
 end
