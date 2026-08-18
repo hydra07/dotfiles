@@ -1,0 +1,55 @@
+
+  KITTY SHORTCUTS                               q / Ctrl+C to close
+ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  TABS
+  ──────────────────────────────────────────────────────────────
+  Ctrl+Shift+T          New tab (inherit cwd)
+  Ctrl+Shift+W          Close tab
+  Ctrl+Shift+→  /  ←   Next / Prev tab
+  Ctrl+Alt+1…5          Jump to tab 1–5
+
+  WINDOWS / SPLITS
+  ──────────────────────────────────────────────────────────────
+  Ctrl+Shift+Enter      New window (inherit cwd)
+  Ctrl+Shift+D          Split vertical  (side by side)
+  Ctrl+Shift+-          Split horizontal (top/bottom)
+  Ctrl+Shift+H/J/K/L    Move focus ← ↓ ↑ →
+  Ctrl+Shift+R          Resize window (interactive)
+
+  FONT SIZE
+  ──────────────────────────────────────────────────────────────
+  Ctrl+Shift+=          Increase font +0.5pt
+  Ctrl+Shift+0          Reset font size
+
+  ACRYLIC OPACITY
+  ──────────────────────────────────────────────────────────────
+  Ctrl+Shift+A > M      Opacity +5%
+  Ctrl+Shift+A > L      Opacity -5%
+  Ctrl+Shift+A > 1      Fully opaque
+  Ctrl+Shift+A > D      Reset to default
+
+  CLIPBOARD
+  ──────────────────────────────────────────────────────────────
+  Ctrl+Shift+C          Copy
+  Ctrl+Shift+V          Paste from clipboard
+  Ctrl+Shift+S          Paste from selection
+
+  HINTS (click-to-copy)
+  ──────────────────────────────────────────────────────────────
+  Ctrl+Shift+P > F      Hint: file paths
+  Ctrl+Shift+P > L      Hint: lines
+  Ctrl+Shift+P > U      Hint: URLs (open in browser)
+
+  SCROLLBACK
+  ──────────────────────────────────────────────────────────────
+  Ctrl+Shift+F          Browse scrollback in pager
+  Ctrl+Shift+G          Show last command output
+
+  OTHER
+  ──────────────────────────────────────────────────────────────
+  Ctrl+Shift+/          THIS cheatsheet (overlay)
+  Ctrl+Shift+F5         Reload kitty.conf
+  Ctrl+Shift+F11        Toggle fullscreen
+  Ctrl+Shift+U          Unicode input
+

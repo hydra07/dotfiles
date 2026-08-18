@@ -9,6 +9,13 @@ just = "latest"
 lua = "5.4"
 uv = "latest"
 "npm:@typescript/native-preview" = "7.0.0-dev.20260707.2"
+# fd/tree-sitter aren't already installed via the OS package manager here (and
+# have no clean apt/pacman/brew equivalent worth maintaining) -> mise.
+# neovim/starship/fzf/ripgrep/eza are left to the OS package manager instead:
+# they're already installed that way and work; mise-managing them too would
+# just duplicate the install and silently shadow it via PATH precedence.
+fd = "latest"
+tree-sitter = "latest"
 
 [env]
 GOPATH = "{{ env.HOME }}/.local/share/go"
