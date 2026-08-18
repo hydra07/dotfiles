@@ -8,6 +8,7 @@ jq = "latest"
 just = "latest"
 lua = "5.4"
 uv = "latest"
+"npm:@typescript/native-preview" = "7.0.0-dev.20260707.2"
 
 [env]
 GOPATH = "{{ env.HOME }}/.local/share/go"
