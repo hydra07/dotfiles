@@ -11,33 +11,41 @@ if status is-interactive
 
     set -gx EDITOR nvim
 
-    # PATH
-    set -gx PATH bin $PATH
-    set -gx PATH ~/bin $PATH
-    set -gx PATH ~/.local/bin $PATH
-    set -gx PATH ~/.bun/bin $PATH
+    # PATH (paths mise manages, e.g. pnpm/bun/node, go through `mise activate` below)
+    fish_add_path -g ~/bin ~/.local/bin
+
+    set -l cfg_dir (dirname (status --current-filename))
 
     # CONFIG OS
     switch (uname)
         case Linux
-            source (dirname (status --current-filename))/config-linux.fish
+            source $cfg_dir/config-linux.fish
         case '*'
-            source (dirname (status --current-filename))/config-windows.fish
+            source $cfg_dir/config-windows.fish
     end
 
     # KEYBINDING
-    test -f (dirname (status --current-filename))/keybinding.fish; and source (dirname (status --current-filename))/keybinding.fish
+    test -f $cfg_dir/keybinding.fish; and source $cfg_dir/keybinding.fish
 
     # THEMES
-    test -f (dirname (status --current-filename))/themes/catppuccin-fzf-mocha.fish; and source (dirname (status --current-filename))/themes/catppuccin-fzf-mocha.fish
+    test -f $cfg_dir/themes/catppuccin-fzf-mocha.fish; and source $cfg_dir/themes/catppuccin-fzf-mocha.fish
 
     # ACTIVATE
-    mise activate fish | source
-    starship init fish | source
-end
+    # --shims: PATH only gets 1 static shims dir added, NOT hooked into every `cd`
+    # (default mode re-execs `mise hook-env` on every directory change, ~40-60ms/time).
+    # Still respects per-project .mise.toml — it just resolves the version when the tool runs.
+    mise activate fish --shims | source
 
-# pnpm
-set -gx PNPM_HOME "$HOME/.local/share/pnpm"
-if not contains $PNPM_HOME $PATH
-  set -gx PATH $PNPM_HOME $PATH
+    # STARSHIP — cache the init script to a static file, avoid re-invoking the
+    # binary + psub on every shell open (~14ms). Auto-regens when the starship binary is newer than the cache.
+    set -l starship_bin (command -v starship)
+    if test -n "$starship_bin"
+        set -l cache_dir (set -q XDG_CACHE_HOME; and echo $XDG_CACHE_HOME; or echo ~/.cache)/fish
+        set -l starship_cache $cache_dir/starship_init.fish
+        if not test -f $starship_cache; or test $starship_bin -nt $starship_cache
+            mkdir -p $cache_dir
+            starship init fish --print-full-init >$starship_cache
+        end
+        source $starship_cache
+    end
 end

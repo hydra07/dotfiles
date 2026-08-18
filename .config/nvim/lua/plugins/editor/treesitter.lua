@@ -1,10 +1,11 @@
 return {
 	{
 		"nvim-treesitter/nvim-treesitter",
+		branch = "master",
 		build = ":TSUpdate",
 		event = { "BufReadPost", "BufNewFile" },
 		dependencies = {
-			"nvim-treesitter/nvim-treesitter-textobjects",
+			{ "nvim-treesitter/nvim-treesitter-textobjects", branch = "master" },
 			{
 				"windwp/nvim-ts-autotag",
 				opts = {
@@ -29,7 +30,6 @@ return {
 				local ok, stats = pcall(vim.uv.fs_stat, vim.api.nvim_buf_get_name(bufnr))
 				return ok and stats and stats.size > max_filesize
 			end
-
 			-- require("nvim-treesitter.install").compilers = { "zig" }
 			require("nvim-treesitter").setup({
 				ensure_installed = {

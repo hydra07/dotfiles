@@ -1,17 +1,25 @@
 [tools]
-bun = "latest"
-node = "latest"
-python = "latest"
-go = "latest"
-rust = "latest"
-pnpm = "latest"
-java = "temurin-21"
+node = "22"
+go = "1.25"
+pnpm = "10"
+bun = "1.2"
+zig = "0.14"
 jq = "latest"
-hurl = "latest"
-awscli = "latest"
-[settings]
-trusted_config_paths = ["~/.config"]
-experimental = true
-jobs = 5
+just = "latest"
+lua = "5.4"
+uv = "latest"
 
-# python_venv_auto_create = true
+[env]
+GOPATH = "{{ env.HOME }}/.local/share/go"
+GOBIN = "{{ env.HOME }}/.local/bin"
+PNPM_HOME = "{{ env.HOME }}/.local/share/pnpm"
+_.path = ["{{ env.HOME }}/.local/share/pnpm"]
+
+[settings]
+lockfile = true
+jobs = 5
+# experimental: off
+idiomatic_version_file_enable_tools = ["node"]
+
+[settings.python]
+uv_venv_auto = "create|source"
